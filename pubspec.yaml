@@ -1,0 +1,30 @@
+name: flutter_enterprise_package
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+  flutter: ">=1.17.0"
+
+workspace:
+  - packages/enterprise_core
+  - packages/enterprise_logger
+  - packages/enterprise_network
+  - packages/enterprise_storage
+
+dev_dependencies:
+  melos: ^8.2.2
+
+# melos configuration instead of melos.yaml
+melos:
+  # fvm use flutter 3.44.8 from current directory
+  sdkPath: .fvm/flutter_sdk
+  scripts:
+    analyze:
+      run: melos exec -- flutter analyze
+      description: "Analyze all packages"
+    test:
+      run: melos exec --dir-exists=test -- flutter test
+      description: "Test all packages"
+    format:
+      run: melos exec -- dart format .
+      description: "Format all packages"
