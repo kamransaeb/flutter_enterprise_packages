@@ -2,6 +2,7 @@ name: enterprise_core
 description: "Shared core package for Flutter enterprise apps."
 version: 0.0.1
 homepage:
+
 # We need to define that this package is a workspace package
 resolution: workspace
 publish_to: none
@@ -11,17 +12,17 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
   enterprise_logger:
     path: ../enterprise_logger
+  flutter:
+    sdk: flutter
   dartz: ^0.10.1
+  dio: ^5.10.0
   equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
