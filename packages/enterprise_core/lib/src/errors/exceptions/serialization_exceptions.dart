@@ -2,6 +2,7 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base serialization exception
 class SerializationException extends AppException {
+  /// Creates a [SerializationException].
   const SerializationException({
     required super.message,
     super.code = 'SERIALIZATION_ERROR',
@@ -20,16 +21,17 @@ class SerializationException extends AppException {
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'type': type?.toString(),
-        'hasData': data != null,
-      };
+    ...super.toJson(),
+    'type': type?.toString(),
+    'hasData': data != null,
+  };
 }
 
 /// JSON serialization exception
 class JsonSerializationException extends SerializationException {
+  /// Creates a [JsonSerializationException].
   const JsonSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -39,19 +41,10 @@ class JsonSerializationException extends SerializationException {
     this.actualType,
     super.code = 'JSON_SERIALIZATION_ERROR',
   }) : super(
-          message: message,
-          severity: ErrorSeverity.medium,
-        );
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Path in JSON where error occurred
-  final String? jsonPath;
-
-  /// Expected type at path
-  final Type? expectedType;
-
-  /// Actual type found
-  final Type? actualType;
-
+  /// Creates a [JsonSerializationException].
   factory JsonSerializationException.invalidType({
     required String path,
     required Type expected,
@@ -59,7 +52,8 @@ class JsonSerializationException extends SerializationException {
     dynamic data,
   }) {
     return JsonSerializationException(
-      message: 'Invalid type at $path: expected $expected, got ${actual.runtimeType}',
+      message: 'Invalid type at $path: expected $expected, '
+      'got ${actual.runtimeType}',
       jsonPath: path,
       expectedType: expected,
       actualType: actual.runtimeType,
@@ -67,6 +61,7 @@ class JsonSerializationException extends SerializationException {
     );
   }
 
+  /// Creates a [JsonSerializationException].
   factory JsonSerializationException.missingField({
     required String field,
     dynamic data,
@@ -78,6 +73,7 @@ class JsonSerializationException extends SerializationException {
     );
   }
 
+  /// Creates a [JsonSerializationException].
   factory JsonSerializationException.invalidFormat({
     required String message,
     dynamic data,
@@ -89,12 +85,22 @@ class JsonSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Path in JSON where error occurred
+  final String? jsonPath;
+
+  /// Expected type at path
+  final Type? expectedType;
+
+  /// Actual type found
+  final Type? actualType;
 }
 
 /// JSON deserialization exception
 class JsonDeserializationException extends SerializationException {
+  /// Creates a [JsonDeserializationException].
   const JsonDeserializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -103,9 +109,8 @@ class JsonDeserializationException extends SerializationException {
     this.expectedType,
     this.actualType,
   }) : super(
-          message: message,
-          code: 'JSON_DESERIALIZATION_ERROR',
-        );
+         code: 'JSON_DESERIALIZATION_ERROR',
+       );
 
   /// Path in JSON where error occurred
   final String? jsonPath;
@@ -119,8 +124,9 @@ class JsonDeserializationException extends SerializationException {
 
 /// JSON serialization (to JSON) exception
 class JsonSerializationToJsonException extends JsonSerializationException {
+  /// Creates a [JsonSerializationToJsonException].
   const JsonSerializationToJsonException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -129,15 +135,15 @@ class JsonSerializationToJsonException extends JsonSerializationException {
     super.expectedType,
     super.actualType,
   }) : super(
-          message: message,
-          code: 'JSON_SERIALIZATION_TO_JSON_ERROR',
-        );
+         code: 'JSON_SERIALIZATION_TO_JSON_ERROR',
+       );
 }
 
 /// Model conversion exception
 class ModelConversionException extends SerializationException {
+  /// Creates a [ModelConversionException].
   const ModelConversionException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -145,17 +151,11 @@ class ModelConversionException extends SerializationException {
     this.sourceType,
     this.targetType,
   }) : super(
-          message: message,
-          code: 'MODEL_CONVERSION_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'MODEL_CONVERSION_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Source model type
-  final Type? sourceType;
-
-  /// Target model type
-  final Type? targetType;
-
+  /// Creates a [ModelConversionException].
   factory ModelConversionException.fromTo({
     required Type from,
     required Type to,
@@ -171,12 +171,19 @@ class ModelConversionException extends SerializationException {
       stackTrace: stackTrace,
     );
   }
+
+  /// Source model type
+  final Type? sourceType;
+
+  /// Target model type
+  final Type? targetType;
 }
 
 /// Freezed serialization exception
 class FreezedSerializationException extends SerializationException {
+  /// Creates a [FreezedSerializationException].
   const FreezedSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -184,17 +191,11 @@ class FreezedSerializationException extends SerializationException {
     this.unionType,
     this.missingUnionKey,
   }) : super(
-          message: message,
-          code: 'FREEZED_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'FREEZED_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// The union type being serialized
-  final Type? unionType;
-
-  /// Missing union key for discrimination
-  final String? missingUnionKey;
-
+  /// Creates a [FreezedSerializationException].
   factory FreezedSerializationException.missingUnionKey({
     required Type unionType,
     required String key,
@@ -208,6 +209,7 @@ class FreezedSerializationException extends SerializationException {
     );
   }
 
+  /// Creates a [FreezedSerializationException].
   factory FreezedSerializationException.invalidUnionValue({
     required Type unionType,
     required String key,
@@ -221,12 +223,19 @@ class FreezedSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// The union type being serialized
+  final Type? unionType;
+
+  /// Missing union key for discrimination
+  final String? missingUnionKey;
 }
 
 /// Hive serialization exception
 class HiveSerializationException extends SerializationException {
+  /// Creates a [HiveSerializationException].
   const HiveSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -234,17 +243,11 @@ class HiveSerializationException extends SerializationException {
     this.typeId,
     this.boxName,
   }) : super(
-          message: message,
-          code: 'HIVE_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'HIVE_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Hive type ID
-  final int? typeId;
-
-  /// Hive box name
-  final String? boxName;
-
+  /// Creates a [HiveSerializationException].
   factory HiveSerializationException.adapterNotFound({
     required int typeId,
     required String boxName,
@@ -258,6 +261,7 @@ class HiveSerializationException extends SerializationException {
     );
   }
 
+  /// Creates a [HiveSerializationException].
   factory HiveSerializationException.invalidData({
     required String message,
     dynamic data,
@@ -269,12 +273,19 @@ class HiveSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Hive type ID
+  final int? typeId;
+
+  /// Hive box name
+  final String? boxName;
 }
 
 /// XML serialization exception
 class XmlSerializationException extends SerializationException {
+  /// Creates a [XmlSerializationException].
   const XmlSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -282,17 +293,11 @@ class XmlSerializationException extends SerializationException {
     this.xmlPath,
     this.elementName,
   }) : super(
-          message: message,
-          code: 'XML_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'XML_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Path in XML where error occurred
-  final String? xmlPath;
-
-  /// XML element name
-  final String? elementName;
-
+  /// Creates a [XmlSerializationException].
   factory XmlSerializationException.missingElement({
     required String elementName,
     dynamic data,
@@ -305,12 +310,19 @@ class XmlSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Path in XML where error occurred
+  final String? xmlPath;
+
+  /// XML element name
+  final String? elementName;
 }
 
 /// Protocol buffer serialization exception
 class ProtobufSerializationException extends SerializationException {
+  /// Creates a [ProtobufSerializationException].
   const ProtobufSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -318,17 +330,11 @@ class ProtobufSerializationException extends SerializationException {
     this.fieldNumber,
     this.fieldName,
   }) : super(
-          message: message,
-          code: 'PROTOBUF_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'PROTOBUF_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Protobuf field number
-  final int? fieldNumber;
-
-  /// Protobuf field name
-  final String? fieldName;
-
+  /// Creates a [ProtobufSerializationException].
   factory ProtobufSerializationException.invalidField({
     required int fieldNumber,
     required String fieldName,
@@ -342,26 +348,28 @@ class ProtobufSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Protobuf field number
+  final int? fieldNumber;
+
+  /// Protobuf field name
+  final String? fieldName;
 }
 
 /// Encoding/Decoding exception
 class EncodingException extends SerializationException {
+  /// Creates an [EncodingException].
   const EncodingException({
-    required String message,
+    required super.message,
     super.code = 'ENCODING_ERROR',
     super.stackTrace,
     super.details,
     this.encoding,
     this.input,
     super.severity = ErrorSeverity.low,
-  }) : super(message: message);
+  });
 
-  /// Encoding type (UTF-8, Base64, etc.)
-  final String? encoding;
-
-  /// Input that failed to encode/decode
-  final dynamic input;
-
+  /// Creates an [EncodingException].
   factory EncodingException.base64DecodeFailed({
     required String input,
     String? message,
@@ -374,6 +382,7 @@ class EncodingException extends SerializationException {
     );
   }
 
+  /// Creates an [EncodingException].
   factory EncodingException.base64EncodeFailed({
     required dynamic input,
     String? message,
@@ -386,6 +395,7 @@ class EncodingException extends SerializationException {
     );
   }
 
+  /// Creates an [EncodingException].
   factory EncodingException.utf8DecodeFailed({
     required List<int> bytes,
     String? message,
@@ -397,12 +407,19 @@ class EncodingException extends SerializationException {
       code: 'UTF8_DECODE_ERROR',
     );
   }
+
+  /// Encoding type (UTF-8, Base64, etc.)
+  final String? encoding;
+
+  /// Input that failed to encode/decode
+  final dynamic input;
 }
 
 /// Date serialization exception
 class DateSerializationException extends SerializationException {
+  /// Creates a [DateSerializationException].
   const DateSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -410,17 +427,11 @@ class DateSerializationException extends SerializationException {
     this.dateFormat,
     this.dateString,
   }) : super(
-          message: message,
-          code: 'DATE_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.low,
-        );
+         code: 'DATE_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.low,
+       );
 
-  /// Expected date format
-  final String? dateFormat;
-
-  /// Date string that failed to parse
-  final String? dateString;
-
+  /// Creates a [DateSerializationException].
   factory DateSerializationException.invalidFormat({
     required String dateString,
     required String expectedFormat,
@@ -434,6 +445,7 @@ class DateSerializationException extends SerializationException {
     );
   }
 
+  /// Creates a [DateSerializationException].
   factory DateSerializationException.invalidIso8601({
     required String dateString,
     dynamic data,
@@ -445,12 +457,19 @@ class DateSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Expected date format
+  final String? dateFormat;
+
+  /// Date string that failed to parse
+  final String? dateString;
 }
 
 /// Enum serialization exception
 class EnumSerializationException extends SerializationException {
+  /// Creates an [EnumSerializationException].
   const EnumSerializationException({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.stackTrace,
@@ -458,17 +477,11 @@ class EnumSerializationException extends SerializationException {
     this.enumValue,
     this.enumType,
   }) : super(
-          message: message,
-          code: 'ENUM_SERIALIZATION_ERROR',
-          severity: ErrorSeverity.low,
-        );
+         code: 'ENUM_SERIALIZATION_ERROR',
+         severity: ErrorSeverity.low,
+       );
 
-  /// Value that failed to map to enum
-  final String? enumValue;
-
-  /// Enum type
-  final Type? enumType;
-
+  /// Creates an [EnumSerializationException].
   factory EnumSerializationException.invalidValue({
     required Type enumType,
     required String value,
@@ -476,13 +489,16 @@ class EnumSerializationException extends SerializationException {
     dynamic data,
   }) {
     return EnumSerializationException(
-      message: 'Invalid value "$value" for enum $enumType. Valid values: ${validValues.join(', ')}',
+      message:
+          'Invalid value "$value" for enum $enumType. Valid values: '
+          '${validValues.join(', ')}',
       enumType: enumType,
       enumValue: value,
       data: data,
     );
   }
 
+  /// Creates an [EnumSerializationException].
   factory EnumSerializationException.missingValue({
     required Type enumType,
     dynamic data,
@@ -493,4 +509,10 @@ class EnumSerializationException extends SerializationException {
       data: data,
     );
   }
+
+  /// Value that failed to map to enum
+  final String? enumValue;
+
+  /// Enum type
+  final Type? enumType;
 }

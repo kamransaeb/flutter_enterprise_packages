@@ -1,7 +1,8 @@
 import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
-/// Base authentication exception
+/// Base authentication exception.
 class AuthException extends AppException {
+  /// Creates an authentication exception.
   const AuthException({
     required super.message,
     super.code,
@@ -11,49 +12,54 @@ class AuthException extends AppException {
   });
 }
 
-/// Invalid credentials (wrong email/password)
+/// Invalid credentials (wrong email/password).
 class InvalidCredentialsException extends AuthException {
+  /// Creates an invalid-credentials exception.
   const InvalidCredentialsException({
-    String message = 'Invalid email or password.',
+    super.message = 'Invalid email or password.',
     super.code = 'INVALID_CREDENTIALS',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 }
 
-/// Unauthorized access (session expired)
+/// Unauthorized access (session expired).
 class UnauthorizedAccessException extends AuthException {
+  /// Creates an unauthorized-access exception.
   const UnauthorizedAccessException({
     this.realm,
-    String message = 'Unauthorized access.',
+    super.message = 'Unauthorized access.',
     super.code = 'UNAUTHORIZED_ACCESS',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 
-  /// Authentication realm
+  /// Authentication realm.
   final String? realm;
 }
 
-/// Email not verified
+/// Email not verified.
 class EmailNotVerifiedException extends AuthException {
+  /// Creates an email-not-verified exception.
   const EmailNotVerifiedException({
-    String message = 'Please verify your email address before logging in.',
+    super.message = 'Please verify your email address before logging in.',
     super.code = 'EMAIL_NOT_VERIFIED',
     super.stackTrace,
     super.details,
     this.resendEmail = true,
-  }) : super(message: message);
+  });
 
-  /// Whether the user can request a new verification email
+  /// Whether the user can request a new verification email.
   final bool resendEmail;
 }
 
-/// Account locked due to too many failed attempts
+/// Account locked due to too many failed attempts.
 class AccountLockedException extends AuthException {
+  /// Creates an account-locked exception with [remainingTime] until unlock.
   AccountLockedException({
     required this.remainingTime,
-    String message = 'Account temporarily locked due to too many failed attempts.',
+    String message =
+        'Account temporarily locked due to too many failed attempts.',
     super.code = 'ACCOUNT_LOCKED',
     super.stackTrace,
     super.details,
@@ -61,33 +67,37 @@ class AccountLockedException extends AuthException {
           message: '$message Try again in ${remainingTime.inMinutes} minutes.',
         );
 
-  /// Time remaining until account is unlocked
+  /// Time remaining until account is unlocked.
   final Duration remainingTime;
 }
 
-/// Account disabled by admin
+/// Account disabled by admin.
 class AccountDisabledException extends AuthException {
+  /// Creates an account-disabled exception.
   const AccountDisabledException({
-    String message = 'Your account has been disabled. Please contact support.',
+    super.message =
+        'Your account has been disabled. Please contact support.',
     super.code = 'ACCOUNT_DISABLED',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 }
 
-/// Refresh token expired
+/// Refresh token expired.
 class RefreshTokenExpiredException extends AuthException {
+  /// Creates a refresh-token-expired exception.
   const RefreshTokenExpiredException({
-    String message = 'Session expired. Please login again.',
+    super.message = 'Session expired. Please login again.',
     super.code = 'REFRESH_TOKEN_EXPIRED',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 }
 
-/// Social login failed
+/// Social login failed.
 class SocialLoginException extends AuthException {
-   SocialLoginException({
+  /// Creates a social-login failure for [provider].
+  SocialLoginException({
     required String provider,
     String message = 'Social login failed.',
     super.code = 'SOCIAL_LOGIN_FAILED',
@@ -99,36 +109,40 @@ class SocialLoginException extends AuthException {
         );
 }
 
-/// Two-factor authentication required
+/// Two-factor authentication required.
 class TwoFactorRequiredException extends AuthException {
+  /// Creates a 2FA-required exception with [twoFactorToken].
   const TwoFactorRequiredException({
     required this.twoFactorToken,
-    String message = 'Two-factor authentication required.',
+    super.message = 'Two-factor authentication required.',
     super.code = '2FA_REQUIRED',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 
-  /// Token for 2FA verification
+  /// Token for 2FA verification.
   final String twoFactorToken;
 }
 
-/// Two-factor authentication failed
+/// Two-factor authentication failed.
 class TwoFactorFailedException extends AuthException {
+  /// Creates a 2FA-failed exception.
   const TwoFactorFailedException({
-    String message = 'Invalid verification code.',
+    super.message = 'Invalid verification code.',
     super.code = '2FA_FAILED',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 }
 
-/// Password reset token expired
+/// Password reset token expired.
 class PasswordResetTokenExpiredException extends AuthException {
+  /// Creates a password-reset-token-expired exception.
   const PasswordResetTokenExpiredException({
-    String message = 'Password reset link has expired. Please request a new one.',
+    super.message =
+        'Password reset link has expired. Please request a new one.',
     super.code = 'PASSWORD_RESET_EXPIRED',
     super.stackTrace,
     super.details,
-  }) : super(message: message);
+  });
 }

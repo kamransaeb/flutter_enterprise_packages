@@ -1,16 +1,22 @@
+/// Convenience helpers for [Map] null-checks, transforms, and merging.
 extension MapExtensions<K, V> on Map<K, V> {
-  // Null safety
+  /// Whether this map has no entries.
   bool get isNullOrEmpty => isEmpty;
-  bool get isNotNullOrEmpty => !isEmpty;
 
-  // Safe access
+  /// Whether this map has one or more entries.
+  bool get isNotNullOrEmpty => isNotEmpty;
+
+  /// Returns the value for [key], or `null` if the key is absent.
   V? getOrNull(K key) => containsKey(key) ? this[key] : null;
 
+  /// Returns the value for [key], or [defaultValue] if the key is absent.
   V getOrDefault(K key, V defaultValue) =>
       containsKey(key) ? this[key]! : defaultValue;
 
-  // Transformation
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) transform) {
+  /// Builds a new map by applying [transform] to each entry.
+  Map<K2, V2> mapEntries<K2, V2>(
+    MapEntry<K2, V2> Function(K key, V value) transform,
+  ) {
     final result = <K2, V2>{};
     forEach((key, value) {
       final entry = transform(key, value);
@@ -19,6 +25,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
+  /// Returns a map containing only entries that satisfy [predicate].
   Map<K, V> filter(bool Function(K key, V value) predicate) {
     final result = <K, V>{};
     forEach((key, value) {
@@ -29,15 +36,17 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
+  /// Returns a map containing only keys that satisfy [predicate].
   Map<K, V> filterKeys(bool Function(K key) predicate) {
     return filter((key, _) => predicate(key));
   }
 
+  /// Returns a map containing only values that satisfy [predicate].
   Map<K, V> filterValues(bool Function(V value) predicate) {
     return filter((_, value) => predicate(value));
   }
 
-  // Grouping
+  /// Groups entries by the key produced from [keySelector].
   Map<K2, Map<K, V>> groupBy<K2>(K2 Function(K key, V value) keySelector) {
     final result = <K2, Map<K, V>>{};
     forEach((key, value) {
@@ -47,7 +56,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Flattening
+  /// Maps each entry to [R] and returns the results as a list.
   List<R> flatten<R>(R Function(K key, V value) transform) {
     final result = <R>[];
     forEach((key, value) {
@@ -56,12 +65,15 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Merging
+  /// Merges [other] into a copy of this map.
+  ///
+  /// When both maps contain the same key and [onConflict] is provided, that
+  /// callback resolves the value; otherwise [other]'s value wins.
   Map<K, V> merge(Map<K, V> other, {V Function(V, V)? onConflict}) {
     final result = Map<K, V>.from(this);
     other.forEach((key, value) {
       if (result.containsKey(key) && onConflict != null) {
-        result[key] = onConflict(result[key]!, value);
+        result.update(key, (existing) => onConflict(existing, value));
       } else {
         result[key] = value;
       }
@@ -69,7 +81,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Invert
+  /// Returns a map with keys and values swapped.
   Map<V, K> invert() {
     final result = <V, K>{};
     forEach((key, value) {
@@ -78,7 +90,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Partition
+  /// Splits entries into maps of at most [size] entries each.
   List<Map<K, V>> chunked(int size) {
     if (size <= 0) return [];
     final entries = this.entries.toList();
@@ -95,37 +107,38 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Sorting
-  Map<K, V> sortedByKey<R extends Comparable>(R Function(K) selector) {
+  /// Returns a map sorted by keys using [selector].
+  Map<K, V> sortedByKey<R extends Comparable<R>>(R Function(K) selector) {
     final entries = this.entries.toList()
       ..sort((a, b) => selector(a.key).compareTo(selector(b.key)));
     return Map.fromEntries(entries);
   }
 
-  Map<K, V> sortedByValue<R extends Comparable>(R Function(V) selector) {
+  /// Returns a map sorted by values using [selector].
+  Map<K, V> sortedByValue<R extends Comparable<R>>(R Function(V) selector) {
     final entries = this.entries.toList()
       ..sort((a, b) => selector(a.value).compareTo(selector(b.value)));
     return Map.fromEntries(entries);
   }
 
-  // Deep copy
+  /// Returns a shallow copy of this map.
   Map<K, V> deepCopy() {
-    return map((key, value) => MapEntry(key, value));
+    return mapEntries(MapEntry.new);
   }
 
-  // Update values
+  /// Returns a map with each value replaced by [update].
   Map<K, V> updateValues(V Function(K key, V value) update) {
-    return map((key, value) => MapEntry(key, update(key, value)));
+    return mapEntries((key, value) => MapEntry(key, update(key, value)));
   }
 
+  /// Returns a copy with [key]'s value updated by [update], if present.
   Map<K, V> updateValueForKey(K key, V Function(V value) update) {
     if (!containsKey(key)) return Map.from(this);
-    final result = Map<K, V>.from(this);
-    result[key] = update(this[key]!);
+    final result = Map<K, V>.from(this)..update(key, update);
     return result;
   }
 
-  // JSON handling
+  /// Converts keys to strings for a JSON-friendly map.
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
     forEach((key, value) {
@@ -134,7 +147,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     return result;
   }
 
-  // Pretty printing
+  /// Returns an indented string representation of this map.
   String toPrettyString({int indent = 2}) {
     final buffer = StringBuffer();
     _prettyPrintMap(this, buffer, 0, indent);
@@ -149,8 +162,9 @@ extension MapExtensions<K, V> on Map<K, V> {
   ) {
     buffer.write('{\n');
     map.forEach((key, value) {
-      buffer.write(' ' * ((depth + 1) * indent));
-      buffer.write('$key: ');
+      buffer
+        ..write(' ' * ((depth + 1) * indent))
+        ..write('$key: ');
       if (value is Map) {
         _prettyPrintMap(value, buffer, depth + 1, indent);
       } else if (value is List) {
@@ -160,8 +174,9 @@ extension MapExtensions<K, V> on Map<K, V> {
       }
       buffer.write(',\n');
     });
-    buffer.write(' ' * (depth * indent));
-    buffer.write('}');
+    buffer
+      ..write(' ' * (depth * indent))
+      ..write('}');
   }
 
   void _prettyPrintList(
@@ -182,7 +197,8 @@ extension MapExtensions<K, V> on Map<K, V> {
       }
       buffer.write(',\n');
     }
-    buffer.write(' ' * (depth * indent));
-    buffer.write(']');
+    buffer
+      ..write(' ' * (depth * indent))
+      ..write(']');
   }
 }

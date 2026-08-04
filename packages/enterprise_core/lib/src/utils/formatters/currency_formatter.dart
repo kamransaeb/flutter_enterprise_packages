@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+/// Currency formatter.
 class CurrencyFormatter {
   static final Map<String, NumberFormat> _formatters = {};
 
@@ -10,7 +11,7 @@ class CurrencyFormatter {
     String? customPattern,
   }) {
     final key = '$locale-$symbol-$decimalDigits-$customPattern';
-    
+
     if (!_formatters.containsKey(key)) {
       _formatters[key] = NumberFormat.currency(
         locale: locale,
@@ -19,14 +20,15 @@ class CurrencyFormatter {
         customPattern: customPattern,
       );
     }
-    
+
     return _formatters[key]!;
   }
 
+  /// Format.
   static String format(
     double amount, {
     String locale = 'en_US',
-    String symbol = '\$',
+    String symbol = r'$',
     int decimalDigits = 2,
     bool showSymbol = true,
     bool compact = false,
@@ -34,30 +36,31 @@ class CurrencyFormatter {
     if (compact) {
       return _formatCompact(amount, locale: locale, symbol: symbol);
     }
-    
+
     final formatter = _getFormatter(
       locale,
       symbol: showSymbol ? symbol : '',
       decimalDigits: decimalDigits,
     );
-    
+
     return formatter.format(amount);
   }
 
   static String _formatCompact(
     double amount, {
     String locale = 'en_US',
-    String symbol = '\$',
+    String symbol = r'$',
   }) {
     if (amount.abs() >= 1000000) {
-      return '${symbol}${(amount / 1000000).toStringAsFixed(1)}M';
+      return '$symbol${(amount / 1000000).toStringAsFixed(1)}M';
     } else if (amount.abs() >= 1000) {
-      return '${symbol}${(amount / 1000).toStringAsFixed(1)}K';
+      return '$symbol${(amount / 1000).toStringAsFixed(1)}K';
     } else {
-      return '${symbol}${amount.toStringAsFixed(0)}';
+      return '$symbol${amount.toStringAsFixed(0)}';
     }
   }
 
+  /// Format with code.
   static String formatWithCode(
     double amount,
     String currencyCode, {
@@ -70,15 +73,16 @@ class CurrencyFormatter {
       symbol: '',
       decimalDigits: decimalDigits,
     );
-    
+
     return '${formatter.format(amount)} $currencyCode';
   }
 
+  /// Format range.
   static String formatRange(
     double min,
     double max, {
     String locale = 'en_US',
-    String symbol = '\$',
+    String symbol = r'$',
     int decimalDigits = 2,
     String separator = ' - ',
   }) {
@@ -88,17 +92,18 @@ class CurrencyFormatter {
       symbol: symbol,
       decimalDigits: decimalDigits,
     );
-    
+
     final maxFormatted = format(
       max,
       locale: locale,
       symbol: symbol,
       decimalDigits: decimalDigits,
     );
-    
+
     return '$minFormatted$separator$maxFormatted';
   }
 
+  /// Format percentage.
   static String formatPercentage(
     double value, {
     String locale = 'en_US',
@@ -109,57 +114,56 @@ class CurrencyFormatter {
       locale: locale,
       decimalDigits: decimalDigits,
     );
-    
+
     var formatted = formatter.format(value / 100);
-    
+
     if (showSign && value > 0) {
       formatted = '+$formatted';
     }
-    
+
     return formatted;
   }
 
+  /// Format change.
   static String formatChange(
     double current,
     double previous, {
     String locale = 'en_US',
-    String symbol = '\$',
+    String symbol = r'$',
     bool showPercentage = true,
   }) {
     final change = current - previous;
-    final double percentage = previous != 0 ? (change / previous) * 100 : 0.0;
-    
+    final percentage = previous != 0 ? (change / previous) * 100 : 0.0;
+
     final changeFormatted = format(
       change,
       locale: locale,
       symbol: symbol,
-      decimalDigits: 2,
-      showSymbol: true,
     );
-    
+
     if (showPercentage) {
       final percentageFormatted = formatPercentage(
         percentage,
         locale: locale,
-        decimalDigits: 1,
-        showSign: true,
       );
-      
+
       return '$changeFormatted ($percentageFormatted)';
     }
-    
+
     return changeFormatted;
   }
 
+  /// Parse.
   static double? parse(String value, {String locale = 'en_US'}) {
     try {
       final formatter = _getFormatter(locale);
       return formatter.parse(value).toDouble();
-    } catch (_) {
+    } on Object catch (_) {
       return null;
     }
   }
 
+  /// Format crypto.
   static String formatCrypto(
     double amount,
     String symbol, {
@@ -171,10 +175,11 @@ class CurrencyFormatter {
       symbol: showSymbol ? symbol : '',
       decimalDigits: decimalDigits,
     );
-    
+
     return formatter.format(amount);
   }
 
+  /// Format with thousands separator.
   static String formatWithThousandsSeparator(
     double amount, {
     String locale = 'en_US',
@@ -182,28 +187,30 @@ class CurrencyFormatter {
     int decimalDigits = 0,
   }) {
     final formatter = NumberFormat.decimalPattern(locale);
-    
+
     if (decimalDigits > 0) {
-      formatter.minimumFractionDigits = decimalDigits;
-      formatter.maximumFractionDigits = decimalDigits;
+      formatter
+        ..minimumFractionDigits = decimalDigits
+        ..maximumFractionDigits = decimalDigits;
     }
-    
+
     var formatted = formatter.format(amount);
-    
+
     if (symbol.isNotEmpty) {
       formatted = '$symbol$formatted';
     }
-    
+
     return formatted;
   }
 
+  /// Format for display.
   static String formatForDisplay(
     double amount, {
     required String currencyCode,
     String locale = 'en_US',
     bool showSymbol = true,
   }) {
-    // TODO: Test this function
+    // TODO(kamransaeb): Test this function.
     final format = NumberFormat.currency(
       locale: locale,
       name: currencyCode,
@@ -214,9 +221,10 @@ class CurrencyFormatter {
     return format.format(amount);
   }
 
+  /// Get currency symbols.
   static Map<String, String> getCurrencySymbols() {
     return {
-      'USD': '\$',
+      'USD': r'$',
       'EUR': '€',
       'GBP': '£',
       'JPY': '¥',
@@ -225,9 +233,9 @@ class CurrencyFormatter {
       'RUB': '₽',
       'KRW': '₩',
       'TRY': '₺',
-      'BRL': 'R\$',
-      'CAD': '\$',
-      'AUD': '\$',
+      'BRL': r'R$',
+      'CAD': r'$',
+      'AUD': r'$',
       'CHF': 'CHF',
       'SEK': 'kr',
       'NOK': 'kr',
@@ -248,6 +256,7 @@ class CurrencyFormatter {
     };
   }
 
+  /// Get symbol for currency.
   static String getSymbolForCurrency(String currencyCode) {
     return getCurrencySymbols()[currencyCode] ?? currencyCode;
   }

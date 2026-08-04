@@ -5,8 +5,9 @@ import 'package:equatable/equatable.dart';
 /// Base failure class for the Either pattern.
 ///
 /// Failures represent expected errors in the application domain.
-/// They are used with [Either] to handle errors without exceptions.
+/// They are used with `Either` to handle errors without exceptions.
 abstract class Failure extends Equatable {
+  /// Creates a [Failure].
   const Failure({
     required this.message,
     this.code,
@@ -36,15 +37,16 @@ abstract class Failure extends Equatable {
 
 /// Base network failure
 class NetworkFailure extends Failure {
+  /// Creates a [NetworkFailure].
   const NetworkFailure({
-    required String message,
+    required super.message,
     super.code,
     super.details,
     this.retryable = true,
     this.timeout = false,
     this.endpoint,
     this.method,
-  }) : super(message: message);
+  });
 
   /// Whether the operation can be retried
   final bool retryable;
@@ -70,14 +72,14 @@ class NetworkFailure extends Failure {
 
 /// No internet connection failure
 class NoInternetConnectionFailure extends NetworkFailure {
+  /// Creates a [NoInternetConnectionFailure].
   const NoInternetConnectionFailure({
-    String message = 'No internet connection. Please check your network.',
+    super.message = 'No internet connection. Please check your network.',
     super.code = 'NO_INTERNET_CONNECTION',
     super.details,
     super.endpoint,
     super.method,
   }) : super(
-         message: message,
          retryable: true,
          timeout: false,
        );
@@ -85,26 +87,27 @@ class NoInternetConnectionFailure extends NetworkFailure {
 
 /// Transform timeout failure
 class TransformTimeoutFailure extends NetworkFailure {
+  /// Creates a [TransformTimeoutFailure].
   const TransformTimeoutFailure({
-    required String message,
+    required super.message,
     super.code = 'TRANSFORM_TIMEOUT',
     super.details,
     super.endpoint,
     super.method,
-  }) : super(message: message);
+  });
 }
 
 /// Connection timeout failure
 class ConnectionTimeoutFailure extends NetworkFailure {
+  /// Creates a [ConnectionTimeoutFailure].
   const ConnectionTimeoutFailure({
-    String message = 'Connection timeout. Please try again.',
+    super.message = 'Connection timeout. Please try again.',
     super.code = 'CONNECTION_TIMEOUT',
     super.details,
     super.endpoint,
     super.method,
     this.timeoutDuration,
   }) : super(
-         message: message,
          retryable: true,
          timeout: true,
        );
@@ -118,15 +121,15 @@ class ConnectionTimeoutFailure extends NetworkFailure {
 
 /// Send timeout failure
 class SendTimeoutFailure extends NetworkFailure {
+  /// Creates a [SendTimeoutFailure].
   const SendTimeoutFailure({
-    String message = 'Send timeout',
+    super.message = 'Send timeout',
     super.code = 'SEND_TIMEOUT',
     super.details,
     super.endpoint,
     super.method,
     this.timeoutDuration,
   }) : super(
-         message: message,
          retryable: true,
          timeout: true,
        );
@@ -140,15 +143,15 @@ class SendTimeoutFailure extends NetworkFailure {
 
 /// Receive timeout failure
 class ReceiveTimeoutFailure extends NetworkFailure {
+  /// Creates a [ReceiveTimeoutFailure].
   const ReceiveTimeoutFailure({
-    String message = 'Receive timeout',
+    super.message = 'Receive timeout',
     super.code = 'RECEIVE_TIMEOUT',
     super.details,
     super.endpoint,
     super.method,
     this.timeoutDuration,
   }) : super(
-         message: message,
          retryable: true,
          timeout: true,
        );
@@ -162,6 +165,7 @@ class ReceiveTimeoutFailure extends NetworkFailure {
 
 /// DNS resolution failure
 class DnsResolutionFailure extends NetworkFailure {
+  /// Creates a [DnsResolutionFailure].
   const DnsResolutionFailure({
     required String hostname,
     String message = 'Failed to resolve DNS',
@@ -178,8 +182,9 @@ class DnsResolutionFailure extends NetworkFailure {
 
 /// SSL/TLS certificate failure
 class SslFailure extends NetworkFailure {
+  /// Creates a [SslFailure].
   const SslFailure({
-    required String message,
+    required super.message,
     super.code = 'SSL_ERROR',
     super.details,
     super.endpoint,
@@ -188,7 +193,6 @@ class SslFailure extends NetworkFailure {
     this.certificateIssuer,
     this.certificateExpiryDate,
   }) : super(
-         message: message,
          retryable: false,
          timeout: false,
        );
@@ -213,22 +217,23 @@ class SslFailure extends NetworkFailure {
 
 /// Network unreachable failure
 class NetworkUnreachableFailure extends NetworkFailure {
+  /// Creates a [NetworkUnreachableFailure].
   const NetworkUnreachableFailure({
-    String message = 'Network is unreachable',
+    super.message = 'Network is unreachable',
     super.code = 'NETWORK_UNREACHABLE',
     super.details,
     super.endpoint,
     super.method,
   }) : super(
-         message: message,
          retryable: true,
        );
 }
 
 /// Socket failure
 class SocketFailure extends NetworkFailure {
+  /// Creates a [SocketFailure].
   const SocketFailure({
-    required String message,
+    required super.message,
     super.code = 'SOCKET_ERROR',
     super.details,
     super.endpoint,
@@ -236,7 +241,6 @@ class SocketFailure extends NetworkFailure {
     this.port,
     this.address,
   }) : super(
-         message: message,
          retryable: true,
        );
 
@@ -252,8 +256,9 @@ class SocketFailure extends NetworkFailure {
 
 /// HTTP status error failure
 class HttpStatusFailure extends NetworkFailure {
+  /// Creates a [HttpStatusFailure].
   const HttpStatusFailure({
-    required String message,
+    required super.message,
     required this.statusCode,
     super.code = 'HTTP_STATUS_ERROR',
     super.details,
@@ -261,7 +266,6 @@ class HttpStatusFailure extends NetworkFailure {
     super.method,
     this.responseData,
   }) : super(
-         message: message,
          retryable: statusCode >= 500 || statusCode == 408 || statusCode == 429,
          timeout: statusCode == 408,
        );
@@ -296,14 +300,14 @@ class HttpStatusFailure extends NetworkFailure {
 
 /// Request cancelled failure
 class RequestCancelledFailure extends NetworkFailure {
+  /// Creates a [RequestCancelledFailure].
   const RequestCancelledFailure({
-    String message = 'Request was cancelled',
+    super.message = 'Request was cancelled',
     super.code = 'REQUEST_CANCELLED',
     super.details,
     super.endpoint,
     super.method,
   }) : super(
-         message: message,
          retryable: false,
          timeout: false,
        );
@@ -311,8 +315,9 @@ class RequestCancelledFailure extends NetworkFailure {
 
 /// Response parsing failure
 class ResponseParsingFailure extends NetworkFailure {
+  /// Creates a [ResponseParsingFailure].
   const ResponseParsingFailure({
-    required String message,
+    required super.message,
     super.code = 'RESPONSE_PARSING_ERROR',
     super.details,
     super.endpoint,
@@ -320,7 +325,6 @@ class ResponseParsingFailure extends NetworkFailure {
     this.rawResponse,
     this.expectedType,
   }) : super(
-         message: message,
          retryable: false,
          timeout: false,
        );
@@ -337,6 +341,7 @@ class ResponseParsingFailure extends NetworkFailure {
 
 /// Rate limit exceeded failure
 class RateLimitExceededFailure extends NetworkFailure {
+  /// Creates a [RateLimitExceededFailure].
   const RateLimitExceededFailure({
     String message = 'Rate limit exceeded',
     super.code = 'RATE_LIMIT_EXCEEDED',
@@ -372,15 +377,15 @@ class RateLimitExceededFailure extends NetworkFailure {
 
 /// WebSocket connection failure
 class WebSocketFailure extends NetworkFailure {
+  /// Creates a [WebSocketFailure].
   const WebSocketFailure({
-    required String message,
+    required super.message,
     super.code = 'WEBSOCKET_ERROR',
     super.details,
     super.endpoint,
     this.closeCode,
     this.closeReason,
   }) : super(
-         message: message,
          retryable: true,
          timeout: false,
        );
@@ -401,15 +406,16 @@ class WebSocketFailure extends NetworkFailure {
 
 /// Base API failure
 class ApiFailure extends Failure {
+  /// Creates an [ApiFailure].
   const ApiFailure({
-    required String message,
+    required super.message,
     super.code,
     super.details,
     this.statusCode,
     this.endpoint,
     this.method,
     this.responseData,
-  }) : super(message: message);
+  });
 
   /// HTTP status code
   final int? statusCode;
@@ -441,8 +447,9 @@ class ApiFailure extends Failure {
 
 /// Bad request failure (400)
 class BadRequestFailure extends ApiFailure {
+  /// Creates a [BadRequestFailure].
   const BadRequestFailure({
-    required String message,
+    required super.message,
     super.statusCode = 400,
     super.code = 'BAD_REQUEST',
     super.details,
@@ -450,7 +457,7 @@ class BadRequestFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.validationErrors,
-  }) : super(message: message);
+  });
 
   /// Field-specific validation errors
   final Map<String, List<String>>? validationErrors;
@@ -461,8 +468,9 @@ class BadRequestFailure extends ApiFailure {
 
 /// Unauthorized failure (401)
 class UnauthorizedRequestFailure extends ApiFailure {
+  /// Creates an [UnauthorizedRequestFailure].
   const UnauthorizedRequestFailure({
-    String message = 'Your session has expired. Please login again.',
+    super.message = 'Your session has expired. Please login again.',
     super.statusCode = 401,
     super.code = 'UNAUTHORIZED_REQUEST',
     super.details,
@@ -470,7 +478,7 @@ class UnauthorizedRequestFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.validationErrors,
-  }) : super(message: message);
+  });
 
   /// Field-specific validation errors
   final Map<String, List<String>>? validationErrors;
@@ -480,8 +488,9 @@ class UnauthorizedRequestFailure extends ApiFailure {
 
 /// Forbidden failure (403)
 class ForbiddenFailure extends ApiFailure {
+  /// Creates a [ForbiddenFailure].
   const ForbiddenFailure({
-    String message = 'You don\'t have permission to access this resource.',
+    super.message = "You don't have permission to access this resource.",
     super.statusCode = 403,
     super.code = 'FORBIDDEN',
     super.details,
@@ -489,7 +498,7 @@ class ForbiddenFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.requiredPermission,
-  }) : super(message: message);
+  });
 
   /// Required permission that was missing
   final String? requiredPermission;
@@ -500,8 +509,9 @@ class ForbiddenFailure extends ApiFailure {
 
 /// Not found failure (404)
 class ResourceNotFoundFailure extends ApiFailure {
+  /// Creates a [ResourceNotFoundFailure].
   const ResourceNotFoundFailure({
-    String message = 'Resource not found.',
+    super.message = 'Resource not found.',
     super.statusCode = 404,
     super.code = 'RESOURCE_NOT_FOUND',
     super.details,
@@ -510,7 +520,7 @@ class ResourceNotFoundFailure extends ApiFailure {
     super.responseData,
     this.resourceType,
     this.resourceId,
-  }) : super(message: message);
+  });
 
   /// Type of resource that wasn't found
   final String? resourceType;
@@ -524,8 +534,9 @@ class ResourceNotFoundFailure extends ApiFailure {
 
 /// Conflict failure (409)
 class ConflictFailure extends ApiFailure {
+  /// Creates a [ConflictFailure].
   const ConflictFailure({
-    required String message,
+    required super.message,
     super.statusCode = 409,
     super.code = 'CONFLICT',
     super.details,
@@ -534,7 +545,7 @@ class ConflictFailure extends ApiFailure {
     super.responseData,
     this.conflictingField,
     this.conflictingValue,
-  }) : super(message: message);
+  });
 
   /// Field that caused the conflict
   final String? conflictingField;
@@ -552,8 +563,9 @@ class ConflictFailure extends ApiFailure {
 
 /// Unprocessable entity failure (422)
 class UnprocessableEntityFailure extends ApiFailure {
+  /// Creates an [UnprocessableEntityFailure].
   const UnprocessableEntityFailure({
-    required String message,
+    required super.message,
     super.statusCode = 422,
     super.code = 'UNPROCESSABLE_ENTITY',
     super.details,
@@ -561,7 +573,7 @@ class UnprocessableEntityFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.validationErrors,
-  }) : super(message: message);
+  });
 
   /// Validation errors
   final Map<String, List<String>>? validationErrors;
@@ -572,8 +584,9 @@ class UnprocessableEntityFailure extends ApiFailure {
 
 /// Too many requests failure (429)
 class TooManyRequestsFailure extends ApiFailure {
+  /// Creates a [TooManyRequestsFailure].
   const TooManyRequestsFailure({
-    String message = 'Too many requests. Please try again later.',
+    super.message = 'Too many requests. Please try again later.',
     super.statusCode = 429,
     super.code = 'TOO_MANY_REQUESTS',
     super.details,
@@ -583,7 +596,7 @@ class TooManyRequestsFailure extends ApiFailure {
     this.limit,
     this.remaining,
     this.reset,
-  }) : super(message: message);
+  });
 
   /// Rate limit value
   final int? limit;
@@ -610,8 +623,9 @@ class TooManyRequestsFailure extends ApiFailure {
 
 /// Internal server error failure (500)
 class InternalServerErrorFailure extends ApiFailure {
+  /// Creates an [InternalServerErrorFailure].
   const InternalServerErrorFailure({
-    String message = 'Internal server error. Please try again later.',
+    super.message = 'Internal server error. Please try again later.',
     super.statusCode = 500,
     super.code = 'INTERNAL_SERVER_ERROR',
     super.details,
@@ -619,7 +633,7 @@ class InternalServerErrorFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.errorId,
-  }) : super(message: message);
+  });
 
   /// Error tracking ID
   final String? errorId;
@@ -630,8 +644,9 @@ class InternalServerErrorFailure extends ApiFailure {
 
 /// Service unavailable failure (503)
 class ServiceUnavailableFailure extends ApiFailure {
+  /// Creates a [ServiceUnavailableFailure].
   const ServiceUnavailableFailure({
-    String message = 'Service temporarily unavailable. Please try again later.',
+    super.message = 'Service temporarily unavailable. Please try again later.',
     super.statusCode = 503,
     super.code = 'SERVICE_UNAVAILABLE',
     super.details,
@@ -639,7 +654,7 @@ class ServiceUnavailableFailure extends ApiFailure {
     super.method,
     super.responseData,
     this.retryAfterSeconds = 60,
-  }) : super(message: message);
+  });
 
   /// Seconds to wait before retrying
   final int retryAfterSeconds;
@@ -654,13 +669,14 @@ class ServiceUnavailableFailure extends ApiFailure {
 
 /// Base serialization failure
 class SerializationFailure extends Failure {
+  /// Creates a [SerializationFailure].
   const SerializationFailure({
-    required String message,
+    required super.message,
     super.code = 'SERIALIZATION_ERROR',
     super.details,
     this.type,
     this.data,
-  }) : super(message: message);
+  });
 
   /// The type being serialized/deserialized
   final Type? type;
@@ -674,8 +690,9 @@ class SerializationFailure extends Failure {
 
 /// JSON serialization failure
 class JsonSerializationFailure extends SerializationFailure {
+  /// Creates a [JsonSerializationFailure].
   const JsonSerializationFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
@@ -683,7 +700,6 @@ class JsonSerializationFailure extends SerializationFailure {
     this.expectedType,
     this.actualType,
   }) : super(
-         message: message,
          code: 'JSON_SERIALIZATION_ERROR',
        );
 
@@ -707,8 +723,9 @@ class JsonSerializationFailure extends SerializationFailure {
 
 /// JSON deserialization failure
 class JsonDeserializationFailure extends SerializationFailure {
+  /// Creates a [JsonDeserializationFailure].
   const JsonDeserializationFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
@@ -716,7 +733,6 @@ class JsonDeserializationFailure extends SerializationFailure {
     this.expectedType,
     this.actualType,
   }) : super(
-         message: message,
          code: 'JSON_DESERIALIZATION_ERROR',
        );
 
@@ -740,15 +756,15 @@ class JsonDeserializationFailure extends SerializationFailure {
 
 /// Model conversion failure
 class ModelConversionFailure extends SerializationFailure {
+  /// Creates a [ModelConversionFailure].
   const ModelConversionFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
     this.sourceType,
     this.targetType,
   }) : super(
-         message: message,
          code: 'MODEL_CONVERSION_ERROR',
        );
 
@@ -764,15 +780,15 @@ class ModelConversionFailure extends SerializationFailure {
 
 /// Hive serialization failure
 class HiveSerializationFailure extends SerializationFailure {
+  /// Creates a [HiveSerializationFailure].
   const HiveSerializationFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
     this.typeId,
     this.boxName,
   }) : super(
-         message: message,
          code: 'HIVE_SERIALIZATION_ERROR',
        );
 
@@ -788,13 +804,14 @@ class HiveSerializationFailure extends SerializationFailure {
 
 /// Encoding/Decoding failure
 class EncodingFailure extends SerializationFailure {
+  /// Creates an [EncodingFailure].
   const EncodingFailure({
-    required String message,
+    required super.message,
     super.code = 'ENCODING_ERROR',
     super.details,
     this.encoding,
     this.input,
-  }) : super(message: message);
+  });
 
   /// Encoding type (UTF-8, Base64, etc.)
   final String? encoding;
@@ -808,15 +825,15 @@ class EncodingFailure extends SerializationFailure {
 
 /// Date serialization failure
 class DateSerializationFailure extends SerializationFailure {
+  /// Creates a [DateSerializationFailure].
   const DateSerializationFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
     this.dateFormat,
     this.dateString,
   }) : super(
-         message: message,
          code: 'DATE_SERIALIZATION_ERROR',
        );
 
@@ -832,15 +849,15 @@ class DateSerializationFailure extends SerializationFailure {
 
 /// Enum serialization failure
 class EnumSerializationFailure extends SerializationFailure {
+  /// Creates an [EnumSerializationFailure].
   const EnumSerializationFailure({
-    required String message,
+    required super.message,
     super.type,
     super.data,
     super.details,
     this.enumValue,
     this.enumType,
   }) : super(
-         message: message,
          code: 'ENUM_SERIALIZATION_ERROR',
        );
 
@@ -860,13 +877,14 @@ class EnumSerializationFailure extends SerializationFailure {
 
 /// Base device failure
 class DeviceFailure extends Failure {
+  /// Creates a [DeviceFailure].
   const DeviceFailure({
-    required String message,
+    required super.message,
     super.code = 'DEVICE_ERROR',
     super.details,
     this.deviceFeature,
     this.deviceModel,
-  }) : super(message: message);
+  });
 
   /// The device feature that caused the error
   final String? deviceFeature;
@@ -880,25 +898,27 @@ class DeviceFailure extends Failure {
 
 /// Hardware not available failure
 class HardwareNotAvailableFailure extends DeviceFailure {
+  /// Creates a [HardwareNotAvailableFailure].
   const HardwareNotAvailableFailure({
-    required String message,
+    required super.message,
     super.code = 'HARDWARE_NOT_AVAILABLE',
     super.details,
     super.deviceFeature,
     super.deviceModel,
-  }) : super(message: message);
+  });
 }
 
 /// Sensor failure
 class SensorFailure extends DeviceFailure {
+  /// Creates a [SensorFailure].
   const SensorFailure({
-    required String message,
+    required super.message,
     super.code = 'SENSOR_ERROR',
     super.details,
     super.deviceFeature,
     super.deviceModel,
     this.sensorDelay,
-  }) : super(message: message);
+  });
 
   /// Sensor delay that was requested
   final int? sensorDelay;
@@ -909,15 +929,16 @@ class SensorFailure extends DeviceFailure {
 
 /// Biometric failure
 class BiometricFailure extends DeviceFailure {
+  /// Creates a [BiometricFailure].
   const BiometricFailure({
-    required String message,
+    required super.message,
     super.code = 'BIOMETRIC_ERROR',
     super.details,
     super.deviceFeature = 'biometric',
     super.deviceModel,
     this.biometricType,
     this.lockout,
-  }) : super(message: message);
+  });
 
   /// Type of biometric (face, fingerprint, etc.)
   final String? biometricType;
@@ -931,14 +952,15 @@ class BiometricFailure extends DeviceFailure {
 
 /// Camera failure
 class CameraFailure extends DeviceFailure {
+  /// Creates a [CameraFailure].
   const CameraFailure({
-    required String message,
+    required super.message,
     super.code = 'CAMERA_ERROR',
     super.details,
     super.deviceFeature = 'camera',
     super.deviceModel,
     this.cameraId,
-  }) : super(message: message);
+  });
 
   /// Camera ID that caused the error
   final String? cameraId;
@@ -949,26 +971,28 @@ class CameraFailure extends DeviceFailure {
 
 /// Microphone failure
 class MicrophoneFailure extends DeviceFailure {
+  /// Creates a [MicrophoneFailure].
   const MicrophoneFailure({
-    required String message,
+    required super.message,
     super.code = 'MICROPHONE_ERROR',
     super.details,
     super.deviceFeature = 'microphone',
     super.deviceModel,
-  }) : super(message: message);
+  });
 }
 
 /// Location services failure
 class LocationFailure extends DeviceFailure {
+  /// Creates a [LocationFailure].
   const LocationFailure({
-    required String message,
+    required super.message,
     super.code = 'LOCATION_ERROR',
     super.details,
     super.deviceFeature = 'location',
     super.deviceModel,
     this.accuracy,
     this.timeout,
-  }) : super(message: message);
+  });
 
   /// Location accuracy requested
   final int? accuracy;
@@ -982,15 +1006,16 @@ class LocationFailure extends DeviceFailure {
 
 /// Bluetooth failure
 class BluetoothFailure extends DeviceFailure {
+  /// Creates a [BluetoothFailure].
   const BluetoothFailure({
-    required String message,
+    required super.message,
     super.code = 'BLUETOOTH_ERROR',
     super.details,
     super.deviceFeature = 'bluetooth',
     super.deviceModel,
     this.deviceAddress,
     this.deviceName,
-  }) : super(message: message);
+  });
 
   /// Bluetooth device address
   final String? deviceAddress;
@@ -1004,15 +1029,16 @@ class BluetoothFailure extends DeviceFailure {
 
 /// Battery failure
 class BatteryFailure extends DeviceFailure {
+  /// Creates a [BatteryFailure].
   const BatteryFailure({
-    required String message,
+    required super.message,
     super.code = 'BATTERY_ERROR',
     super.details,
     super.deviceFeature = 'battery',
     super.deviceModel,
     this.batteryLevel,
     this.isCharging,
-  }) : super(message: message);
+  });
 
   /// Current battery level (0-100)
   final int? batteryLevel;
@@ -1026,15 +1052,16 @@ class BatteryFailure extends DeviceFailure {
 
 /// Storage device failure
 class StorageDeviceFailure extends DeviceFailure {
+  /// Creates a [StorageDeviceFailure].
   const StorageDeviceFailure({
-    required String message,
+    required super.message,
     super.code = 'STORAGE_ERROR',
     super.details,
     super.deviceFeature = 'storage',
     super.deviceModel,
     this.requiredSpace,
     this.availableSpace,
-  }) : super(message: message);
+  });
 
   /// Required storage space
   final int? requiredSpace;
@@ -1048,15 +1075,16 @@ class StorageDeviceFailure extends DeviceFailure {
 
 /// Display failure
 class DisplayFailure extends DeviceFailure {
+  /// Creates a [DisplayFailure].
   const DisplayFailure({
-    required String message,
+    required super.message,
     super.code = 'DISPLAY_ERROR',
     super.details,
     super.deviceFeature = 'display',
     super.deviceModel,
     this.screenSize,
     this.orientation,
-  }) : super(message: message);
+  });
 
   /// Screen size in pixels
   final Size? screenSize;
@@ -1074,14 +1102,15 @@ class DisplayFailure extends DeviceFailure {
 
 /// Server-related failures (API calls, backend errors)
 class ServerFailure extends Failure {
+  /// Creates a [ServerFailure].
   const ServerFailure({
-    required String message,
+    required super.message,
     super.code,
     super.details,
     this.statusCode,
     this.retryable = true,
     this.endpoint,
-  }) : super(message: message);
+  });
 
   /// HTTP status code if applicable
   final int? statusCode;
@@ -1116,13 +1145,14 @@ class ServerFailure extends Failure {
 
 /// Base authentication failure
 class AuthFailure extends Failure {
+  /// Creates an [AuthFailure].
   const AuthFailure({
-    required String message,
+    required super.message,
     super.code,
     super.details,
     this.requiresReauth = false,
     this.requiresVerification = false,
-  }) : super(message: message);
+  });
 
   /// Whether user needs to re-authenticate
   final bool requiresReauth;
@@ -1140,13 +1170,13 @@ class AuthFailure extends Failure {
 
 /// Unauthorized access (session expired)
 class UnauthorizedAccessFailure extends AuthFailure {
+  /// Creates an [UnauthorizedAccessFailure].
   const UnauthorizedAccessFailure({
     this.realm,
-    String message = 'Your session has expired. Please login again.',
+    super.message = 'Your session has expired. Please login again.',
     super.code = 'UNAUTHORIZED_ACCESS',
     super.details,
   }) : super(
-         message: message,
          requiresReauth: true,
        );
 
@@ -1159,22 +1189,23 @@ class UnauthorizedAccessFailure extends AuthFailure {
 
 /// Invalid credentials (wrong email/password)
 class InvalidCredentialsFailure extends AuthFailure {
+  /// Creates an [InvalidCredentialsFailure].
   const InvalidCredentialsFailure({
-    String message = 'Invalid email or password.',
+    super.message = 'Invalid email or password.',
     super.code = 'INVALID_CREDENTIALS',
     super.details,
-  }) : super(message: message);
+  });
 }
 
 /// Email not verified
 class EmailNotVerifiedFailure extends AuthFailure {
+  /// Creates an [EmailNotVerifiedFailure].
   const EmailNotVerifiedFailure({
-    String message = 'Please verify your email address before logging in.',
+    super.message = 'Please verify your email address before logging in.',
     super.code = 'EMAIL_NOT_VERIFIED',
     super.details,
     this.resendEmail = true,
   }) : super(
-         message: message,
          requiresVerification: true,
        );
 
@@ -1187,6 +1218,7 @@ class EmailNotVerifiedFailure extends AuthFailure {
 
 /// Account locked due to too many attempts
 class AccountLockedFailure extends AuthFailure {
+  /// Creates an [AccountLockedFailure].
   AccountLockedFailure({
     required this.remainingTime,
     String message =
@@ -1206,21 +1238,23 @@ class AccountLockedFailure extends AuthFailure {
 
 /// Account disabled
 class AccountDisabledFailure extends AuthFailure {
+  /// Creates an [AccountDisabledFailure].
   const AccountDisabledFailure({
-    String message = 'Your account has been disabled. Please contact support.',
+    super.message = 'Your account has been disabled. Please contact support.',
     super.code = 'ACCOUNT_DISABLED',
     super.details,
-  }) : super(message: message);
+  });
 }
 
 /// Two-factor authentication required
 class TwoFactorRequiredFailure extends AuthFailure {
+  /// Creates a [TwoFactorRequiredFailure].
   const TwoFactorRequiredFailure({
     required this.twoFactorToken,
-    String message = 'Two-factor authentication required.',
+    super.message = 'Two-factor authentication required.',
     super.code = '2FA_REQUIRED',
     super.details,
-  }) : super(message: message);
+  });
 
   /// Token for 2FA verification
   final String twoFactorToken;
@@ -1235,23 +1269,15 @@ class TwoFactorRequiredFailure extends AuthFailure {
 
 /// Validation failure for a specific field
 class ValidationFailure extends Failure {
+  /// Creates a [ValidationFailure].
   const ValidationFailure({
-    required String message,
+    required super.message,
     super.code = 'VALIDATION_ERROR',
     super.details,
     this.field,
     this.rule,
     this.value,
-  }) : super(message: message);
-
-  /// Field that failed validation
-  final String? field;
-
-  /// Validation rule that was violated
-  final String? rule;
-
-  /// Value that failed validation
-  final dynamic value;
+  });
 
   /// Create validation failure for email
   factory ValidationFailure.email({
@@ -1323,6 +1349,15 @@ class ValidationFailure extends Failure {
     );
   }
 
+  /// Field that failed validation
+  final String? field;
+
+  /// Validation rule that was violated
+  final String? rule;
+
+  /// Value that failed validation
+  final dynamic value;
+
   static String _getPasswordErrorMessage(String reason) {
     switch (reason) {
       case 'too_short':
@@ -1348,16 +1383,35 @@ class ValidationFailure extends Failure {
 
 /// Form validation failure (multiple fields)
 class FormValidationFailure extends ValidationFailure {
+  /// Creates a [FormValidationFailure].
   const FormValidationFailure({
     required super.message,
+    required this.errors,
     super.code = 'FORM_VALIDATION_ERROR',
     super.details,
-    required this.errors,
   }) : super(
          field: null,
          rule: null,
          value: null,
        );
+
+  /// Creates a [FormValidationFailure].
+  factory FormValidationFailure.fromMap(Map<String, dynamic> errors) {
+    final formattedErrors = <String, List<String>>{};
+    for (final entry in errors.entries) {
+      final value = entry.value;
+      if (value is List) {
+        formattedErrors[entry.key] = value.map((e) => e.toString()).toList();
+      } else if (value is String) {
+        formattedErrors[entry.key] = [value];
+      }
+    }
+    return FormValidationFailure(
+      message: 'Please fix the errors in the form',
+      errors: formattedErrors,
+      details: errors,
+    );
+  }
 
   /// Map of field names to error messages
   final Map<String, List<String>> errors;
@@ -1371,57 +1425,33 @@ class FormValidationFailure extends ValidationFailure {
   /// Get first error message for a field
   String? getFirstFieldError(String field) => errors[field]?.firstOrNull;
 
-  factory FormValidationFailure.fromMap(Map<String, dynamic> errors) {
-    final formattedErrors = <String, List<String>>{};
-    errors.forEach((key, value) {
-      if (value is List) {
-        formattedErrors[key] = value.map((e) => e.toString()).toList();
-      } else if (value is String) {
-        formattedErrors[key] = [value];
-      }
-    });
-    return FormValidationFailure(
-      message: 'Please fix the errors in the form',
-      errors: formattedErrors,
-      details: errors,
-    );
-  }
-
   @override
   List<Object?> get props => [...super.props, errors];
 }
 
+/// Data validation failure.
 class DataValidationFailure extends ValidationFailure {
+  /// Creates a [DataValidationFailure].
   const DataValidationFailure({
     required super.message,
+    required super.field,
+    required super.rule,
+    required super.value,
     super.code = 'DATA_VALIDATION_ERROR',
     super.details,
-    required this.field,
-    required this.rule,
-    required this.value,
-  }) : super(field: field, rule: rule, value: value);
-
-  /// Field that failed validation
-  final String? field;
-
-  /// Validation rule that was violated
-  final String? rule;
-
-  /// Value that failed validation
-  final dynamic value;
-
-  @override
-  List<Object?> get props => [...super.props, field, rule, value];
+  });
 }
 
+/// Range validation failure.
 class RangeValidationFailure extends ValidationFailure {
+  /// Creates a [RangeValidationFailure].
   const RangeValidationFailure({
     required super.message,
-    super.code = 'RANGE_VALIDATION_ERROR',
-    super.details,
     required this.minValue,
     required this.maxValue,
     required this.actualValue,
+    super.code = 'RANGE_VALIDATION_ERROR',
+    super.details,
   }) : super(field: null, rule: null, value: null);
 
   /// Minimum value that was violated
@@ -1437,12 +1467,14 @@ class RangeValidationFailure extends ValidationFailure {
   List<Object?> get props => [...super.props, minValue, maxValue, actualValue];
 }
 
+/// Business rule failure.
 class BusinessRuleFailure extends Failure {
+  /// Creates a [BusinessRuleFailure].
   const BusinessRuleFailure({
     required super.message,
+    required this.ruleName,
     super.code = 'BUSINESS_RULE_ERROR',
     super.details,
-    required this.ruleName,
   });
 
   /// Business rule that was violated
@@ -1451,13 +1483,15 @@ class BusinessRuleFailure extends Failure {
   List<Object?> get props => [...super.props, ruleName];
 }
 
+/// Date validation failure.
 class DateValidationFailure extends ValidationFailure {
+  /// Creates a [DateValidationFailure].
   const DateValidationFailure({
     required super.message,
-    super.code = 'DATE_VALIDATION_ERROR',
-    super.details,
     required this.dateFormat,
     required this.date,
+    super.code = 'DATE_VALIDATION_ERROR',
+    super.details,
   }) : super(field: null, rule: null, value: null);
 
   /// Date that was violated
@@ -1475,14 +1509,15 @@ class DateValidationFailure extends ValidationFailure {
 
 /// Permission-related failures
 class PermissionFailure extends Failure {
+  /// Creates a [PermissionFailure].
   const PermissionFailure({
-    required String message,
+    required super.message,
+    required this.permission,
     super.code = 'PERMISSION_DENIED',
     super.details,
-    required this.permission,
     this.permanentlyDenied = false,
     this.shouldShowRationale = true,
-  }) : super(message: message);
+  });
 
   /// Permission that was denied
   final String permission;
@@ -1508,13 +1543,14 @@ class PermissionFailure extends Failure {
 
 /// Cache-related failures
 class CacheFailure extends Failure {
+  /// Creates a [CacheFailure].
   const CacheFailure({
-    required String message,
+    required super.message,
     super.code = 'CACHE_ERROR',
     super.details,
     this.key,
     this.operation,
-  }) : super(message: message);
+  });
 
   /// Cache key being accessed
   final String? key;
@@ -1532,13 +1568,14 @@ class CacheFailure extends Failure {
 
 /// File-related failures
 class FileFailure extends Failure {
+  /// Creates a [FileFailure].
   const FileFailure({
-    required String message,
+    required super.message,
     super.code = 'FILE_ERROR',
     super.details,
     this.path,
     this.fileName,
-  }) : super(message: message);
+  });
 
   /// File path that caused the error
   final String? path;
@@ -1552,19 +1589,20 @@ class FileFailure extends Failure {
 
 /// File not found failure
 class FileNotFoundFailure extends FileFailure {
+  /// Creates a [FileNotFoundFailure].
   const FileNotFoundFailure({
-    String message = 'File not found',
+    super.message = 'File not found',
     super.path,
     super.fileName,
     super.details,
   }) : super(
-         message: message,
          code: 'FILE_NOT_FOUND',
        );
 }
 
 /// File too large failure
 class FileTooLargeFailure extends FileFailure {
+  /// Creates a [FileTooLargeFailure].
   FileTooLargeFailure({
     required this.fileSize,
     required this.maxSize,
@@ -1603,13 +1641,14 @@ class FileTooLargeFailure extends FileFailure {
 
 /// Payment-related failures
 class PaymentFailure extends Failure {
+  /// Creates a [PaymentFailure].
   const PaymentFailure({
-    required String message,
+    required super.message,
     super.code = 'PAYMENT_ERROR',
     super.details,
     this.transactionId,
     this.paymentMethod,
-  }) : super(message: message);
+  });
 
   /// Transaction identifier
   final String? transactionId;
@@ -1623,14 +1662,14 @@ class PaymentFailure extends Failure {
 
 /// Payment declined failure
 class PaymentDeclinedFailure extends PaymentFailure {
+  /// Creates a [PaymentDeclinedFailure].
   const PaymentDeclinedFailure({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.details,
     this.declineReason,
   }) : super(
-         message: message,
          code: 'PAYMENT_DECLINED',
        );
 
@@ -1643,15 +1682,15 @@ class PaymentDeclinedFailure extends PaymentFailure {
 
 /// Insufficient funds failure
 class InsufficientFundsFailure extends PaymentFailure {
+  /// Creates an [InsufficientFundsFailure].
   const InsufficientFundsFailure({
-    String message = 'Insufficient funds for this transaction',
+    super.message = 'Insufficient funds for this transaction',
     super.transactionId,
     super.paymentMethod,
     super.details,
     this.requiredAmount,
     this.availableAmount,
   }) : super(
-         message: message,
          code: 'INSUFFICIENT_FUNDS',
        );
 
@@ -1665,14 +1704,16 @@ class InsufficientFundsFailure extends PaymentFailure {
   List<Object?> get props => [...super.props, requiredAmount, availableAmount];
 }
 
+/// Payment processing failure.
 class PaymentProcessingFailure extends PaymentFailure {
+  /// Creates a [PaymentProcessingFailure].
   const PaymentProcessingFailure({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.details,
     this.processingError,
-  }) : super(message: message);
+  });
 
   /// Processing error from payment processor
   final dynamic processingError;
@@ -1681,22 +1722,26 @@ class PaymentProcessingFailure extends PaymentFailure {
   List<Object?> get props => [...super.props, processingError];
 }
 
+/// Payment timeout failure.
 class PaymentTimeoutFailure extends PaymentFailure {
+  /// Creates a [PaymentTimeoutFailure].
   const PaymentTimeoutFailure({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.details,
-  }) : super(message: message);
+  });
 }
 
+/// Refund failure.
 class RefundFailure extends PaymentFailure {
+  /// Creates a [RefundFailure].
   const RefundFailure({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.details,
-  }) : super(message: message);
+  });
 }
 
 // ============================================================================
@@ -1705,12 +1750,13 @@ class RefundFailure extends PaymentFailure {
 
 /// Business logic failure
 class BusinessFailure extends Failure {
+  /// Creates a [BusinessFailure].
   const BusinessFailure({
-    required String message,
+    required super.message,
     super.code = 'BUSINESS_ERROR',
     super.details,
     this.ruleName,
-  }) : super(message: message);
+  });
 
   /// Business rule that was violated
   final String? ruleName;
@@ -1721,6 +1767,7 @@ class BusinessFailure extends Failure {
 
 /// Resource not found failure
 class NotFoundFailure extends BusinessFailure {
+  /// Creates a [NotFoundFailure].
   const NotFoundFailure({
     required String resourceType,
     String? identifier,
@@ -1729,7 +1776,8 @@ class NotFoundFailure extends BusinessFailure {
   }) : super(
          message:
              message ??
-             '$resourceType not found${identifier != null ? ': $identifier' : ''}',
+             '$resourceType not found${identifier != null ? ': $identifier' :
+              ''}',
          code: 'NOT_FOUND',
          ruleName: 'resource_exists',
        );
@@ -1737,6 +1785,7 @@ class NotFoundFailure extends BusinessFailure {
 
 /// Resource already exists failure
 class AlreadyExistsFailure extends BusinessFailure {
+  /// Creates an [AlreadyExistsFailure].
   const AlreadyExistsFailure({
     required String resourceType,
     String? identifier,
@@ -1745,7 +1794,8 @@ class AlreadyExistsFailure extends BusinessFailure {
   }) : super(
          message:
              message ??
-             '$resourceType already exists${identifier != null ? ': $identifier' : ''}',
+             '$resourceType already exists${identifier != null ? ': $identifier'
+              : ''}',
          code: 'ALREADY_EXISTS',
          ruleName: 'unique_constraint',
        );
@@ -1753,6 +1803,7 @@ class AlreadyExistsFailure extends BusinessFailure {
 
 /// Operation not allowed failure
 class OperationNotAllowedFailure extends BusinessFailure {
+  /// Creates an [OperationNotAllowedFailure].
   const OperationNotAllowedFailure({
     required String operation,
     String? reason,
@@ -1761,7 +1812,8 @@ class OperationNotAllowedFailure extends BusinessFailure {
   }) : super(
          message:
              message ??
-             'Operation not allowed: $operation${reason != null ? ' ($reason)' : ''}',
+             'Operation not allowed: $operation${reason != null ? ' ($reason)'
+              : ''}',
          code: 'OPERATION_NOT_ALLOWED',
          ruleName: operation,
        );
@@ -1773,13 +1825,14 @@ class OperationNotAllowedFailure extends BusinessFailure {
 
 /// Third-party service failure
 class ThirdPartyServiceFailure extends Failure {
+  /// Creates a [ThirdPartyServiceFailure].
   const ThirdPartyServiceFailure({
-    required String message,
+    required super.message,
+    required this.serviceName,
     super.code = 'THIRD_PARTY_ERROR',
     super.details,
-    required this.serviceName,
     this.serviceError,
-  }) : super(message: message);
+  });
 
   /// Name of the third-party service
   final String serviceName;
@@ -1793,16 +1846,15 @@ class ThirdPartyServiceFailure extends Failure {
 
 /// Firebase service failure
 class FirebaseFailure extends ThirdPartyServiceFailure {
+  /// Creates a [FirebaseFailure].
   const FirebaseFailure({
-    required String message,
-    required String serviceName,
+    required super.message,
+    required super.serviceName,
     super.serviceError,
     super.details,
     this.firebaseErrorCode,
   }) : super(
-         message: message,
          code: 'FIREBASE_ERROR',
-         serviceName: serviceName,
        );
 
   /// Firebase-specific error code
@@ -1818,9 +1870,10 @@ class FirebaseFailure extends ThirdPartyServiceFailure {
 
 /// Unknown/unexpected failure
 class UnknownFailure extends Failure {
+  /// Creates an [UnknownFailure].
   const UnknownFailure({
-    String message = 'An unexpected error occurred',
+    super.message = 'An unexpected error occurred',
     super.code = 'UNKNOWN_ERROR',
     super.details,
-  }) : super(message: message);
+  });
 }

@@ -2,6 +2,7 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base payment exception
 class PaymentException extends AppException {
+  /// Creates a [PaymentException].
   const PaymentException({
     required super.message,
     super.code = 'PAYMENT_ERROR',
@@ -21,18 +22,18 @@ class PaymentException extends AppException {
 
 /// Payment declined exception
 class PaymentDeclinedException extends PaymentException {
+  /// Creates a [PaymentDeclinedException].
   const PaymentDeclinedException({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
     this.declineReason,
-  }) : super(
-          message: message,
-          code: 'PAYMENT_DECLINED',
-          severity: ErrorSeverity.medium,
-        );
+  }) : super(         
+         code: 'PAYMENT_DECLINED',
+         severity: ErrorSeverity.medium,
+       );
 
   /// Reason for decline from payment processor
   final String? declineReason;
@@ -40,8 +41,9 @@ class PaymentDeclinedException extends PaymentException {
 
 /// Insufficient funds exception
 class InsufficientFundsException extends PaymentException {
+  /// Creates an [InsufficientFundsException].
   const InsufficientFundsException({
-    String message = 'Insufficient funds for this transaction.',
+    super.message = 'Insufficient funds for this transaction.',
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
@@ -49,10 +51,9 @@ class InsufficientFundsException extends PaymentException {
     this.requiredAmount,
     this.availableAmount,
   }) : super(
-          message: message,
-          code: 'INSUFFICIENT_FUNDS',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'INSUFFICIENT_FUNDS',
+         severity: ErrorSeverity.medium,
+       );
 
   /// Amount required for transaction
   final double? requiredAmount;
@@ -63,18 +64,18 @@ class InsufficientFundsException extends PaymentException {
 
 /// Payment processing exception
 class PaymentProcessingException extends PaymentException {
+  /// Creates a [PaymentProcessingException].
   const PaymentProcessingException({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
     this.processingError,
   }) : super(
-          message: message,
-          code: 'PAYMENT_PROCESSING_ERROR',
-          severity: ErrorSeverity.high,
-        );
+         code: 'PAYMENT_PROCESSING_ERROR',
+         severity: ErrorSeverity.high,
+       );
 
   /// Raw error from payment processor
   final String? processingError;
@@ -82,33 +83,33 @@ class PaymentProcessingException extends PaymentException {
 
 /// Payment timeout exception
 class PaymentTimeoutException extends PaymentException {
+  /// Creates a [PaymentTimeoutException].
   const PaymentTimeoutException({
-    String message = 'Payment processing timed out.',
+    super.message = 'Payment processing timed out.',
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'PAYMENT_TIMEOUT',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'PAYMENT_TIMEOUT',
+         severity: ErrorSeverity.medium,
+       );
 }
 
 /// Refund exception
 class RefundException extends PaymentException {
+  /// Creates a [RefundException].
   const RefundException({
-    required String message,
+    required super.message,
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
     this.originalTransactionId,
   }) : super(
-          message: message,
-          code: 'REFUND_ERROR',
-          severity: ErrorSeverity.high,
-        );
+         code: 'REFUND_ERROR',
+         severity: ErrorSeverity.high,
+       );
 
   /// Original transaction being refunded
   final String? originalTransactionId;
@@ -116,6 +117,7 @@ class RefundException extends PaymentException {
 
 /// Invalid payment method exception
 class InvalidPaymentMethodException extends PaymentException {
+  /// Creates an [InvalidPaymentMethodException].
   const InvalidPaymentMethodException({
     required String paymentMethod,
     String message = 'Invalid payment method.',
@@ -123,27 +125,27 @@ class InvalidPaymentMethodException extends PaymentException {
     super.stackTrace,
     super.details,
   }) : super(
-          message: '$message: $paymentMethod',
-          code: 'INVALID_PAYMENT_METHOD',
-          paymentMethod: paymentMethod,
-          severity: ErrorSeverity.low,
-        );
+         message: '$message: $paymentMethod',
+         code: 'INVALID_PAYMENT_METHOD',
+         paymentMethod: paymentMethod,
+         severity: ErrorSeverity.low,
+       );
 }
 
 /// Subscription expired exception
 class SubscriptionExpiredException extends PaymentException {
+  /// Creates a [SubscriptionExpiredException].
   const SubscriptionExpiredException({
-    String message = 'Your subscription has expired.',
+    super.message = 'Your subscription has expired.',
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
     this.expirationDate,
   }) : super(
-          message: message,
-          code: 'SUBSCRIPTION_EXPIRED',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'SUBSCRIPTION_EXPIRED',
+         severity: ErrorSeverity.medium,
+       );
 
   /// Date when subscription expired
   final DateTime? expirationDate;
@@ -151,18 +153,18 @@ class SubscriptionExpiredException extends PaymentException {
 
 /// Subscription canceled exception
 class SubscriptionCanceledException extends PaymentException {
+  /// Creates a [SubscriptionCanceledException].
   const SubscriptionCanceledException({
-    String message = 'Your subscription has been canceled.',
+    super.message = 'Your subscription has been canceled.',
     super.transactionId,
     super.paymentMethod,
     super.stackTrace,
     super.details,
     this.cancelDate,
   }) : super(
-          message: message,
-          code: 'SUBSCRIPTION_CANCELED',
-          severity: ErrorSeverity.low,
-        );
+         code: 'SUBSCRIPTION_CANCELED',
+         severity: ErrorSeverity.low,
+       );
 
   /// Date when subscription was canceled
   final DateTime? cancelDate;

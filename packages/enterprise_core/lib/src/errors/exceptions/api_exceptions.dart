@@ -2,12 +2,13 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base class for all API-related exceptions (HTTP status codes)
 class ApiException extends AppException {
+  /// Creates a base API exception with HTTP metadata.
   const ApiException({
     required super.message,
+    required this.statusCode,
     super.code,
     super.stackTrace,
     super.details,
-    required this.statusCode,
     this.endpoint,
     this.method,
     this.responseData,
@@ -55,33 +56,36 @@ class ApiException extends AppException {
   bool get isRateLimited => statusCode == 429;
 
   /// Check if request can be retried (server errors are retryable)
-  bool get isRetryable => isServerError || statusCode == 408 || statusCode == 429;
+  bool get isRetryable =>
+      isServerError || statusCode == 408 || statusCode == 429;
 
   /// Extract error message from response data
   String? get extractedMessage => _extractErrorMessage(responseData);
 
   /// Extract validation errors from response data
-  Map<String, List<String>>? get validationErrors => _extractValidationErrors(responseData);
+  Map<String, List<String>>? get validationErrors =>
+      _extractValidationErrors(responseData);
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'statusCode': statusCode,
-        'endpoint': endpoint,
-        'method': method,
-        'isRetryable': isRetryable,
-        'extractedMessage': extractedMessage,
-      };
+    ...super.toJson(),
+    'statusCode': statusCode,
+    'endpoint': endpoint,
+    'method': method,
+    'isRetryable': isRetryable,
+    'extractedMessage': extractedMessage,
+  };
 
   static String? _extractErrorMessage(dynamic data) {
     if (data is Map) {
-      final raw =  data['message'] ??
+      final raw =
+          data['message'] ??
           data['error'] ??
           data['error_message'] ??
           data['detail'] ??
           data['msg'] ??
           data['error_description'];
-          
+
       return raw?.toString();
     }
     if (data is String) {
@@ -95,20 +99,22 @@ class ApiException extends AppException {
       // Handle different error formats
       if (data['errors'] is Map) {
         final errors = <String, List<String>>{};
-        (data['errors'] as Map).forEach((key, value) {
+        for (final entry in (data['errors'] as Map).entries) {
+          final key = entry.key;
+          final value = entry.value;
           if (value is List) {
             errors[key.toString()] = value.map((e) => e.toString()).toList();
           } else if (value is String) {
-            errors[key.toString()] = [value.toString()];
+            errors[key.toString()] = [value];
           }
-        });
+        }
         return errors;
       }
 
       // Handle Laravel-style errors
       if (data['errors'] is List) {
         final errors = <String, List<String>>{};
-        (data['errors'] as List).forEach((error) {
+        for (final error in data['errors'] as List) {
           if (error is Map) {
             final field = error['field'] ?? error['param'] ?? error['property'];
             final message = error['message'];
@@ -117,19 +123,22 @@ class ApiException extends AppException {
               errors[field.toString()]!.add(message.toString());
             }
           }
-        });
+        }
         return errors;
       }
 
       // Handle simple field errors
       final simpleErrors = <String, List<String>>{};
-      data.forEach((key, value) {
+      for (final entry in data.entries) {
+        final key = entry.key;
+        final value = entry.value;
         if (value is String && key != 'message' && key != 'error') {
-          simpleErrors[key.toString()] = [value.toString()];
+          simpleErrors[key.toString()] = [value];
         } else if (value is List && value.isNotEmpty && value.first is String) {
-          simpleErrors[key.toString()] = value.map((e) => e.toString()).toList();
+          simpleErrors[key.toString()] =
+              value.map((e) => e.toString()).toList();
         }
-      });
+      }
       return simpleErrors.isNotEmpty ? simpleErrors : null;
     }
     return null;
@@ -138,8 +147,9 @@ class ApiException extends AppException {
 
 /// Bad request exception (400)
 class BadRequestException extends ApiException {
+  /// Creates a 400 Bad Request exception.
   const BadRequestException({
-    required String message,
+    required super.message,
     super.responseData,
     super.headers,
     super.endpoint,
@@ -148,23 +158,23 @@ class BadRequestException extends ApiException {
     super.details,
     this.validationErrors,
   }) : super(
-          message: message,
-          statusCode: 400,
-          code: 'BAD_REQUEST',
-          severity: ErrorSeverity.medium,
-        );
+         statusCode: 400,
+         code: 'BAD_REQUEST',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Field-specific validation errors
-  final Map<String, List<String>>? validationErrors;
-
+  /// Builds a [BadRequestException] from response data and headers.
   factory BadRequestException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final validationErrors = ApiException._extractValidationErrors(responseData);
-    final message = ApiException._extractErrorMessage(responseData) ??
+    final validationErrors = ApiException._extractValidationErrors(
+      responseData,
+    );
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
         'Invalid request. Please check your input.';
 
     return BadRequestException(
@@ -177,17 +187,22 @@ class BadRequestException extends ApiException {
     );
   }
 
+  /// Field-specific validation errors
+  @override
+  final Map<String, List<String>>? validationErrors;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'validationErrors': validationErrors,
-      };
+    ...super.toJson(),
+    'validationErrors': validationErrors,
+  };
 }
 
 /// Unauthorized exception (401)
 class UnauthorizedRequestException extends ApiException {
+  /// Creates a 401 Unauthorized exception.
   const UnauthorizedRequestException({
-    String message = 'Your session has expired. Please login again.',
+    super.message = 'Your session has expired. Please login again.',
     super.responseData,
     super.headers,
     super.endpoint,
@@ -196,28 +211,26 @@ class UnauthorizedRequestException extends ApiException {
     super.details,
     this.realm,
   }) : super(
-          message: message,
-          statusCode: 401,
-          code: 'UNAUTHORIZED_REQUEST',
-          severity: ErrorSeverity.high,
-        );
+         statusCode: 401,
+         code: 'UNAUTHORIZED_REQUEST',
+         severity: ErrorSeverity.high,
+       );
 
-  /// Authentication realm
-  final String? realm;
-
+  /// Builds a [UnauthorizedRequestException] from response data and headers.
   factory UnauthorizedRequestException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ??
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
         'Your session has expired. Please login again.';
 
     String? realm;
     if (headers != null && headers['www-authenticate'] != null) {
       final authHeader = headers['www-authenticate'].toString();
-      final realmMatch = RegExp(r'realm="([^"]+)"').firstMatch(authHeader);
+      final realmMatch = RegExp('realm="([^"]+)"').firstMatch(authHeader);
       realm = realmMatch?.group(1);
     }
 
@@ -231,17 +244,21 @@ class UnauthorizedRequestException extends ApiException {
     );
   }
 
+  /// Authentication realm
+  final String? realm;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'realm': realm,
-      };
+    ...super.toJson(),
+    'realm': realm,
+  };
 }
 
 /// Forbidden exception (403)
 class ForbiddenException extends ApiException {
+  /// Creates a 403 Forbidden exception.
   const ForbiddenException({
-    String message = 'You don\'t have permission to access this resource.',
+    super.message = "You don't have permission to access this resource.",
     super.responseData,
     super.headers,
     super.endpoint,
@@ -250,23 +267,21 @@ class ForbiddenException extends ApiException {
     super.details,
     this.requiredPermission,
   }) : super(
-          message: message,
-          statusCode: 403,
-          code: 'FORBIDDEN',
-          severity: ErrorSeverity.high,
-        );
+         statusCode: 403,
+         code: 'FORBIDDEN',
+         severity: ErrorSeverity.high,
+       );
 
-  /// Required permission that was missing
-  final String? requiredPermission;
-
+  /// Builds a [ForbiddenException] from response data and headers.
   factory ForbiddenException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ??
-        'You don\'t have permission to access this resource.';
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
+        "You don't have permission to access this resource.";
 
     String? requiredPermission;
     if (responseData is Map && responseData['required_permission'] != null) {
@@ -283,17 +298,21 @@ class ForbiddenException extends ApiException {
     );
   }
 
+  /// Required permission that was missing
+  final String? requiredPermission;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'requiredPermission': requiredPermission,
-      };
+    ...super.toJson(),
+    'requiredPermission': requiredPermission,
+  };
 }
 
 /// Not found exception (404)
 class ResourceNotFoundException extends ApiException {
+  /// Creates a 404 Not Found exception.
   const ResourceNotFoundException({
-    String message = 'Resource not found.',
+    super.message = 'Resource not found.',
     super.responseData,
     super.headers,
     super.endpoint,
@@ -303,25 +322,21 @@ class ResourceNotFoundException extends ApiException {
     this.resourceType,
     this.resourceId,
   }) : super(
-          message: message,
-          statusCode: 404,
-          code: 'RESOURCE_NOT_FOUND',
-          severity: ErrorSeverity.medium,
-        );
+         statusCode: 404,
+         code: 'RESOURCE_NOT_FOUND',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Type of resource that wasn't found
-  final String? resourceType;
-
-  /// ID of resource that wasn't found
-  final String? resourceId;
-
+  /// Builds a [ResourceNotFoundException] from response data and headers.
   factory ResourceNotFoundException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ?? 'Resource not found.';
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
+        'Resource not found.';
 
     String? resourceType;
     String? resourceId;
@@ -341,18 +356,25 @@ class ResourceNotFoundException extends ApiException {
     );
   }
 
+  /// Type of resource that wasn't found
+  final String? resourceType;
+
+  /// ID of resource that wasn't found
+  final String? resourceId;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'resourceType': resourceType,
-        'resourceId': resourceId,
-      };
+    ...super.toJson(),
+    'resourceType': resourceType,
+    'resourceId': resourceId,
+  };
 }
 
 /// Conflict exception (409)
 class ConflictException extends ApiException {
+  /// Creates a 409 Conflict exception.
   const ConflictException({
-    required String message,
+    required super.message,
     super.responseData,
     super.headers,
     super.endpoint,
@@ -362,25 +384,20 @@ class ConflictException extends ApiException {
     this.conflictingField,
     this.conflictingValue,
   }) : super(
-          message: message,
-          statusCode: 409,
-          code: 'CONFLICT',
-          severity: ErrorSeverity.medium,
-        );
+         statusCode: 409,
+         code: 'CONFLICT',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Field that caused the conflict
-  final String? conflictingField;
-
-  /// Value that caused the conflict
-  final String? conflictingValue;
-
+  /// Builds a [ConflictException] from response data and headers.
   factory ConflictException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ?? 'Resource conflict.';
+    final message =
+        ApiException._extractErrorMessage(responseData) ?? 'Resource conflict.';
 
     String? conflictingField;
     String? conflictingValue;
@@ -400,18 +417,25 @@ class ConflictException extends ApiException {
     );
   }
 
+  /// Field that caused the conflict
+  final String? conflictingField;
+
+  /// Value that caused the conflict
+  final String? conflictingValue;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'conflictingField': conflictingField,
-        'conflictingValue': conflictingValue,
-      };
+    ...super.toJson(),
+    'conflictingField': conflictingField,
+    'conflictingValue': conflictingValue,
+  };
 }
 
 /// Unprocessable entity exception (422)
 class UnprocessableEntityException extends ApiException {
+  /// Creates a 422 Unprocessable Entity exception.
   const UnprocessableEntityException({
-    required String message,
+    required super.message,
     super.responseData,
     super.headers,
     super.endpoint,
@@ -420,23 +444,23 @@ class UnprocessableEntityException extends ApiException {
     super.details,
     this.validationErrors,
   }) : super(
-          message: message,
-          statusCode: 422,
-          code: 'UNPROCESSABLE_ENTITY',
-          severity: ErrorSeverity.medium,
-        );
+         statusCode: 422,
+         code: 'UNPROCESSABLE_ENTITY',
+         severity: ErrorSeverity.medium,
+       );
 
-  /// Validation errors
-  final Map<String, List<String>>? validationErrors;
-
+  /// Builds a [UnprocessableEntityException] from response data and headers.
   factory UnprocessableEntityException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final validationErrors = ApiException._extractValidationErrors(responseData);
-    final message = ApiException._extractErrorMessage(responseData) ?? 'Validation failed.';
+    final validationErrors = ApiException._extractValidationErrors(
+      responseData,
+    );
+    final message =
+        ApiException._extractErrorMessage(responseData) ?? 'Validation failed.';
 
     return UnprocessableEntityException(
       message: message,
@@ -448,17 +472,22 @@ class UnprocessableEntityException extends ApiException {
     );
   }
 
+  /// Validation errors
+  @override
+  final Map<String, List<String>>? validationErrors;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'validationErrors': validationErrors,
-      };
+    ...super.toJson(),
+    'validationErrors': validationErrors,
+  };
 }
 
 /// Rate limit exceeded exception (429)
 class TooManyRequestsException extends ApiException {
+  /// Creates a 429 Too Many Requests exception.
   const TooManyRequestsException({
-    String message = 'Too many requests. Please try again later.',
+    super.message = 'Too many requests. Please try again later.',
     super.responseData,
     super.headers,
     super.endpoint,
@@ -469,28 +498,20 @@ class TooManyRequestsException extends ApiException {
     this.remaining,
     this.reset,
   }) : super(
-          message: message,
-          statusCode: 429,
-          code: 'TOO_MANY_REQUESTS',
-          severity: ErrorSeverity.low,
-        );
+         statusCode: 429,
+         code: 'TOO_MANY_REQUESTS',
+         severity: ErrorSeverity.low,
+       );
 
-  /// Rate limit value
-  final int? limit;
-
-  /// Remaining requests
-  final int? remaining;
-
-  /// Time when limit resets (Unix timestamp)
-  final int? reset;
-
+  /// Builds a [TooManyRequestsException] from response data and headers.
   factory TooManyRequestsException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ??
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
         'Too many requests. Please try again later.';
 
     int? limit;
@@ -499,11 +520,14 @@ class TooManyRequestsException extends ApiException {
 
     if (headers != null) {
       limit = int.tryParse(headers['x-ratelimit-limit']?.toString() ?? '');
-      remaining = int.tryParse(headers['x-ratelimit-remaining']?.toString() ?? '');
+      remaining = int.tryParse(
+        headers['x-ratelimit-remaining']?.toString() ?? '',
+      );
       reset = int.tryParse(headers['x-ratelimit-reset']?.toString() ?? '');
 
       if (reset == null && headers['retry-after'] != null) {
-        reset = DateTime.now().millisecondsSinceEpoch ~/ 1000 +
+        reset =
+            DateTime.now().millisecondsSinceEpoch ~/ 1000 +
             (int.tryParse(headers['retry-after'].toString()) ?? 0);
       }
     }
@@ -520,6 +544,15 @@ class TooManyRequestsException extends ApiException {
     );
   }
 
+  /// Rate limit value
+  final int? limit;
+
+  /// Remaining requests
+  final int? remaining;
+
+  /// Time when limit resets (Unix timestamp)
+  final int? reset;
+
   /// Get retry after duration
   Duration get retryAfter {
     if (reset != null) {
@@ -532,18 +565,19 @@ class TooManyRequestsException extends ApiException {
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'limit': limit,
-        'remaining': remaining,
-        'reset': reset,
-        'retryAfterSeconds': retryAfter.inSeconds,
-      };
+    ...super.toJson(),
+    'limit': limit,
+    'remaining': remaining,
+    'reset': reset,
+    'retryAfterSeconds': retryAfter.inSeconds,
+  };
 }
 
 /// Internal server error exception (500)
 class InternalServerErrorException extends ApiException {
+  /// Creates a 500 Internal Server Error exception.
   const InternalServerErrorException({
-    String message = 'Internal server error. Please try again later.',
+    super.message = 'Internal server error. Please try again later.',
     super.responseData,
     super.headers,
     super.endpoint,
@@ -552,22 +586,20 @@ class InternalServerErrorException extends ApiException {
     super.details,
     this.errorId,
   }) : super(
-          message: message,
-          statusCode: 500,
-          code: 'INTERNAL_SERVER_ERROR',
-          severity: ErrorSeverity.high,
-        );
+         statusCode: 500,
+         code: 'INTERNAL_SERVER_ERROR',
+         severity: ErrorSeverity.high,
+       );
 
-  /// Error tracking ID
-  final String? errorId;
-
+  /// Builds a [InternalServerErrorException] from response data and headers.
   factory InternalServerErrorException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ??
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
         'Internal server error. Please try again later.';
 
     String? errorId;
@@ -585,17 +617,21 @@ class InternalServerErrorException extends ApiException {
     );
   }
 
+  /// Error tracking ID
+  final String? errorId;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'errorId': errorId,
-      };
+    ...super.toJson(),
+    'errorId': errorId,
+  };
 }
 
 /// Service unavailable exception (503)
 class ServiceUnavailableException extends ApiException {
+  /// Creates a 503 Service Unavailable exception.
   const ServiceUnavailableException({
-    String message = 'Service temporarily unavailable. Please try again later.',
+    super.message = 'Service temporarily unavailable. Please try again later.',
     super.responseData,
     super.headers,
     super.endpoint,
@@ -604,25 +640,23 @@ class ServiceUnavailableException extends ApiException {
     super.details,
     this.retryAfterSeconds = 60,
   }) : super(
-          message: message,
-          statusCode: 503,
-          code: 'SERVICE_UNAVAILABLE',
-          severity: ErrorSeverity.high,
-        );
+         statusCode: 503,
+         code: 'SERVICE_UNAVAILABLE',
+         severity: ErrorSeverity.high,
+       );
 
-  /// Seconds to wait before retrying
-  final int retryAfterSeconds;
-
+  /// Builds a [ServiceUnavailableException] from response data and headers.
   factory ServiceUnavailableException.fromResponse({
     dynamic responseData,
     Map<String, dynamic>? headers,
     String? endpoint,
     String? method,
   }) {
-    final message = ApiException._extractErrorMessage(responseData) ??
+    final message =
+        ApiException._extractErrorMessage(responseData) ??
         'Service temporarily unavailable. Please try again later.';
 
-    int retryAfterSeconds = 60;
+    var retryAfterSeconds = 60;
     if (headers != null && headers['retry-after'] != null) {
       retryAfterSeconds = int.tryParse(headers['retry-after'].toString()) ?? 60;
     }
@@ -637,9 +671,12 @@ class ServiceUnavailableException extends ApiException {
     );
   }
 
+  /// Seconds to wait before retrying
+  final int retryAfterSeconds;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'retryAfterSeconds': retryAfterSeconds,
-      };
+    ...super.toJson(),
+    'retryAfterSeconds': retryAfterSeconds,
+  };
 }

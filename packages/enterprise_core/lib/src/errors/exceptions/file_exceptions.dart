@@ -2,6 +2,7 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base file operation exception
 class FileException extends AppException {
+  /// Creates a [FileException].
   const FileException({
     required super.message,
     super.code = 'FILE_ERROR',
@@ -21,83 +22,84 @@ class FileException extends AppException {
 
 /// File not found exception
 class FileNotFoundException extends FileException {
+  /// Creates a [FileNotFoundException].
   const FileNotFoundException({
-    String message = 'File not found.',
+    super.message = 'File not found.',
     super.path,
     super.fileName,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'FILE_NOT_FOUND',
-          severity: ErrorSeverity.low,
-        );
+         code: 'FILE_NOT_FOUND',
+         severity: ErrorSeverity.low,
+       );
 }
 
 /// File already exists exception
 class FileAlreadyExistsException extends FileException {
+  /// Creates a [FileAlreadyExistsException].
   const FileAlreadyExistsException({
-    String message = 'File already exists.',
+    super.message = 'File already exists.',
     super.path,
     super.fileName,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'FILE_ALREADY_EXISTS',
-          severity: ErrorSeverity.low,
-        );
+         code: 'FILE_ALREADY_EXISTS',
+         severity: ErrorSeverity.low,
+       );
 }
 
 /// File read exception
 class FileReadException extends FileException {
+  /// Creates a [FileReadException].
   const FileReadException({
-    required String message,
+    required super.message,
     super.path,
     super.fileName,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'FILE_READ_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'FILE_READ_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 }
 
 /// File write exception
 class FileWriteException extends FileException {
+  /// Creates a [FileWriteException].
   const FileWriteException({
-    required String message,
+    required super.message,
     super.path,
     super.fileName,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'FILE_WRITE_ERROR',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'FILE_WRITE_ERROR',
+         severity: ErrorSeverity.medium,
+       );
 }
 
 /// File delete exception
 class FileDeleteException extends FileException {
+  /// Creates a [FileDeleteException].
   const FileDeleteException({
-    required String message,
+    required super.message,
     super.path,
     super.fileName,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
-          code: 'FILE_DELETE_ERROR',
-          severity: ErrorSeverity.low,
-        );
+         code: 'FILE_DELETE_ERROR',
+         severity: ErrorSeverity.low,
+       );
 }
 
 /// Insufficient storage space
 class InsufficientStorageException extends FileException {
+  /// Creates an [InsufficientStorageException].
   const InsufficientStorageException({
-    String message = 'Insufficient storage space.',
+    super.message = 'Insufficient storage space.',
     super.path,
     super.fileName,
     super.stackTrace,
@@ -105,10 +107,9 @@ class InsufficientStorageException extends FileException {
     this.requiredSpace,
     this.availableSpace,
   }) : super(
-          message: message,
-          code: 'INSUFFICIENT_STORAGE',
-          severity: ErrorSeverity.medium,
-        );
+         code: 'INSUFFICIENT_STORAGE',
+         severity: ErrorSeverity.medium,
+       );
 
   /// Space required for operation
   final int? requiredSpace;
@@ -119,7 +120,8 @@ class InsufficientStorageException extends FileException {
 
 /// File too large exception
 class FileTooLargeException extends FileException {
-   FileTooLargeException({
+  /// Creates a [FileTooLargeException].
+  FileTooLargeException({
     required this.fileSize,
     required this.maxSize,
     String message = 'File size exceeds limit.',
@@ -128,10 +130,11 @@ class FileTooLargeException extends FileException {
     super.stackTrace,
     super.details,
   }) : super(
-          message: '$message (${_formatSize(fileSize)} / ${_formatSize(maxSize)})',
-          code: 'FILE_TOO_LARGE',
-          severity: ErrorSeverity.low,
-        );
+         message:
+             '$message (${_formatSize(fileSize)} / ${_formatSize(maxSize)})',
+         code: 'FILE_TOO_LARGE',
+         severity: ErrorSeverity.low,
+       );
 
   /// Actual file size
   final int fileSize;
@@ -151,7 +154,8 @@ class FileTooLargeException extends FileException {
 
 /// Unsupported file type exception
 class UnsupportedFileTypeException extends FileException {
-   UnsupportedFileTypeException({
+  /// Creates an [UnsupportedFileTypeException].
+  UnsupportedFileTypeException({
     required this.fileType,
     required this.supportedTypes,
     String message = 'File type not supported.',
@@ -160,10 +164,11 @@ class UnsupportedFileTypeException extends FileException {
     super.stackTrace,
     super.details,
   }) : super(
-          message: '$message: $fileType. Supported: ${supportedTypes.join(', ')}',
-          code: 'UNSUPPORTED_FILE_TYPE',
-          severity: ErrorSeverity.low,
-        );
+         message:
+             '$message: $fileType. Supported: ${supportedTypes.join(', ')}',
+         code: 'UNSUPPORTED_FILE_TYPE',
+         severity: ErrorSeverity.low,
+       );
 
   /// Actual file type
   final String fileType;

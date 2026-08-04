@@ -2,6 +2,7 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base cache exception
 class CacheException extends AppException {
+  /// Creates a [CacheException].
   const CacheException({
     required super.message,
     super.code = 'CACHE_ERROR',
@@ -21,6 +22,7 @@ class CacheException extends AppException {
 
 /// Cache read exception
 class CacheReadException extends CacheException {
+  /// Creates a [CacheReadException].
   const CacheReadException({
     required super.message,
     super.key,
@@ -34,6 +36,7 @@ class CacheReadException extends CacheException {
 
 /// Cache write exception
 class CacheWriteException extends CacheException {
+  /// Creates a [CacheWriteException].
   const CacheWriteException({
     required super.message,
     super.key,
@@ -47,6 +50,7 @@ class CacheWriteException extends CacheException {
 
 /// Cache delete exception
 class CacheDeleteException extends CacheException {
+  /// Creates a [CacheDeleteException].
   const CacheDeleteException({
     required super.message,
     super.key,
@@ -60,14 +64,14 @@ class CacheDeleteException extends CacheException {
 
 /// Cache corrupted exception
 class CacheCorruptedException extends CacheException {
+  /// Creates a [CacheCorruptedException].
   const CacheCorruptedException({
-    String message = 'Cache data is corrupted.',
+    super.message = 'Cache data is corrupted.',
     super.key,
     super.stackTrace,
     super.details,
     this.corruptedData,
   }) : super(
-          message: message,
           operation: 'read',
           code: 'CACHE_CORRUPTED',
           severity: ErrorSeverity.medium,
@@ -79,15 +83,15 @@ class CacheCorruptedException extends CacheException {
 
 /// Cache full exception
 class CacheFullException extends CacheException {
+  /// Creates a [CacheFullException].
   const CacheFullException({
-    String message = 'Cache storage is full.',
+    super.message = 'Cache storage is full.',
     super.key,
     super.stackTrace,
     super.details,
     this.requiredSpace,
     this.availableSpace,
   }) : super(
-          message: message,
           operation: 'write',
           code: 'CACHE_FULL',
           severity: ErrorSeverity.medium,
@@ -102,13 +106,13 @@ class CacheFullException extends CacheException {
 
 /// Cache not initialized exception
 class CacheNotInitializedException extends CacheException {
+  /// Creates a [CacheNotInitializedException].
   const CacheNotInitializedException({
-    String message = 'Cache has not been initialized.',
+    super.message = 'Cache has not been initialized.',
     super.key,
     super.stackTrace,
     super.details,
   }) : super(
-          message: message,
           operation: 'initialize',
           code: 'CACHE_NOT_INITIALIZED',
           severity: ErrorSeverity.high,
@@ -117,15 +121,15 @@ class CacheNotInitializedException extends CacheException {
 
 /// Cache timeout exception
 class CacheTimeoutException extends CacheException {
+  /// Creates a [CacheTimeoutException].
   const CacheTimeoutException({
-    String message = 'Cache operation timed out.',
+    super.message = 'Cache operation timed out.',
     super.key,
     super.operation,
     super.stackTrace,
     super.details,
     this.timeoutDuration,
   }) : super(
-          message: message,
           code: 'CACHE_TIMEOUT',
           severity: ErrorSeverity.low,
         );

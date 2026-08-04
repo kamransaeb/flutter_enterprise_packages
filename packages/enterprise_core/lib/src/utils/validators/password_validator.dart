@@ -1,19 +1,31 @@
 import 'package:formz/formz.dart';
 
+/// Password validation error.
 enum PasswordValidationError {
+  /// Invalid.
   invalid,
+  /// Empty.
   empty,
+  /// Too short.
   tooShort,
+  /// No uppercase.
   noUppercase,
+  /// No lowercase.
   noLowercase,
+  /// No digit.
   noDigit,
+  /// No special character.
   noSpecialCharacter,
 }
 
+/// Password.
 class Password extends FormzInput<String, PasswordValidationError> {
+  /// Pure.
   const Password.pure() : super.pure('');
+  /// Dirty.
   const Password.dirty([String value = '']) : super.dirty(value);
 
+  /// Validator.
   @override
   PasswordValidationError? validator(String value) {
     if (value.isEmpty) {
@@ -37,6 +49,7 @@ class Password extends FormzInput<String, PasswordValidationError> {
     return null;
   }
 
+  /// Get error message.
   static String? getErrorMessage(PasswordValidationError? error) {
     switch (error) {
       case PasswordValidationError.empty:
@@ -58,6 +71,7 @@ class Password extends FormzInput<String, PasswordValidationError> {
     }
   }
 
+  /// Get validation rules.
   static String getValidationRules() {
     return '''
 Password must contain:

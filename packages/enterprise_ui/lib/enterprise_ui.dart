@@ -1,0 +1,1 @@
+export 'src/debounced_text_controller.dart';

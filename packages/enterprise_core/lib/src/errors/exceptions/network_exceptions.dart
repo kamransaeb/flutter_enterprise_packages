@@ -2,6 +2,7 @@ import 'package:enterprise_core/src/errors/exceptions/app_exception.dart';
 
 /// Base network connectivity exception (low-level network issues)
 class NetworkException extends AppException {
+  /// Creates a [NetworkException].
   const NetworkException({
     required super.message,
     super.code = 'NETWORK_ERROR',
@@ -24,33 +25,33 @@ class NetworkException extends AppException {
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'retryable': retryable,
-        'endpoint': endpoint,
-        'method': method,
-      };
+    ...super.toJson(),
+    'retryable': retryable,
+    'endpoint': endpoint,
+    'method': method,
+  };
 }
 
 /// No internet connection exception
 class NoInternetConnectionException extends NetworkException {
+  /// Creates a [NoInternetConnectionException].
   const NoInternetConnectionException({
-    String message = 'No internet connection. Please check your network.',
+    super.message = 'No internet connection. Please check your network.',
     super.code = 'NO_INTERNET_CONNECTION',
     super.stackTrace,
     super.details,
     super.endpoint,
     super.method,
-  }) : super(
-          message: message,
-          retryable: true,
-          severity: ErrorSeverity.high,
-        );
+    super.retryable = true,
+    super.severity = ErrorSeverity.high,
+  });
 }
 
 /// Response parsing error
 class ResponseParsingException extends NetworkException {
+  /// Creates a [ResponseParsingException].
   const ResponseParsingException({
-    required String message,
+    required super.message,
     super.code = 'RESPONSE_PARSING_ERROR',
     super.stackTrace,
     super.details,
@@ -58,18 +59,11 @@ class ResponseParsingException extends NetworkException {
     super.method,
     this.rawResponse,
     this.expectedType,
-  }) : super(
-          message: message,
-          retryable: false,
-          severity: ErrorSeverity.medium,
-        );
+    super.retryable = false,
+    super.severity = ErrorSeverity.medium,
+  });
 
-  /// Raw response that failed to parse
-  final dynamic rawResponse;
-
-  /// Expected type during parsing
-  final Type? expectedType;
-
+  /// Creates a [ResponseParsingException].
   factory ResponseParsingException.invalidJson({
     required dynamic rawResponse,
     required String message,
@@ -83,6 +77,7 @@ class ResponseParsingException extends NetworkException {
     );
   }
 
+  /// Creates a [ResponseParsingException].
   factory ResponseParsingException.unexpectedType({
     required Type expected,
     required Type actual,
@@ -96,12 +91,19 @@ class ResponseParsingException extends NetworkException {
       expectedType: expected,
     );
   }
+
+  /// Raw response that failed to parse
+  final dynamic rawResponse;
+
+  /// Expected type during parsing
+  final Type? expectedType;
 }
 
 /// HTTP status error (non-2xx status codes)
 class HttpStatusException extends NetworkException {
+  /// Creates a [HttpStatusException].
   const HttpStatusException({
-    required String message,
+    required super.message,
     required this.statusCode,
     super.code = 'HTTP_STATUS_ERROR',
     super.stackTrace,
@@ -110,15 +112,13 @@ class HttpStatusException extends NetworkException {
     super.method,
     this.responseData,
   }) : super(
-          message: message,
-          retryable: statusCode >= 500 || statusCode == 408 || statusCode == 429,
-          severity:
-          statusCode >= 500 || statusCode == 401 || statusCode == 403
-            ? ErrorSeverity.high
-            : statusCode >= 400
-                ? ErrorSeverity.medium
-                : ErrorSeverity.low,
-        );
+         retryable: statusCode >= 500 || statusCode == 408 || statusCode == 429,
+         severity: statusCode >= 500 || statusCode == 401 || statusCode == 403
+             ? ErrorSeverity.high
+             : statusCode >= 400
+             ? ErrorSeverity.medium
+             : ErrorSeverity.low,
+       );
 
   /// HTTP status code
   final int statusCode;
@@ -147,23 +147,20 @@ class HttpStatusException extends NetworkException {
 
 /// Connection timeout exception
 class ConnectionTimeoutException extends NetworkException {
+  /// Creates a [ConnectionTimeoutException].
   const ConnectionTimeoutException({
-    String message = 'Connection timeout. Please try again.',
+    super.message = 'Connection timeout. Please try again.',
     super.code = 'CONNECTION_TIMEOUT',
     super.stackTrace,
     super.details,
     super.endpoint,
     super.method,
     this.timeoutDuration,
-  }) : super(
-          message: message,
-          retryable: true,
-          severity: ErrorSeverity.medium,
-        );
+    super.retryable = true,
+    super.severity = ErrorSeverity.medium,
+  });
 
-  /// Duration that was exceeded
-  final Duration? timeoutDuration;
-
+  /// Creates a [ConnectionTimeoutException].
   factory ConnectionTimeoutException.withDuration({
     required Duration duration,
     String? endpoint,
@@ -177,15 +174,19 @@ class ConnectionTimeoutException extends NetworkException {
     );
   }
 
+  /// Duration that was exceeded
+  final Duration? timeoutDuration;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'timeoutDuration': timeoutDuration?.inSeconds,
-      };
+    ...super.toJson(),
+    'timeoutDuration': timeoutDuration?.inSeconds,
+  };
 }
 
 /// DNS resolution failed exception
 class DnsResolutionException extends NetworkException {
+  /// Creates a [DnsResolutionException].
   const DnsResolutionException({
     required this.hostname,
     String message = 'Failed to resolve DNS',
@@ -195,25 +196,26 @@ class DnsResolutionException extends NetworkException {
     super.endpoint,
     super.method,
   }) : super(
-          message: '$message: $hostname',
-          retryable: true,
-          severity: ErrorSeverity.medium,
-        );
+         message: '$message: $hostname',
+         retryable: true,
+         severity: ErrorSeverity.medium,
+       );
 
   /// Hostname that failed to resolve
   final String hostname;
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'hostname': hostname,
-      };
+    ...super.toJson(),
+    'hostname': hostname,
+  };
 }
 
 /// SSL/TLS certificate error exception
 class SslException extends NetworkException {
+  /// Creates a [SslException].
   const SslException({
-    required String message,
+    required super.message,
     super.code = 'SSL_ERROR',
     super.stackTrace,
     super.details,
@@ -222,21 +224,11 @@ class SslException extends NetworkException {
     this.certificateSubject,
     this.certificateIssuer,
     this.certificateExpiryDate,
-  }) : super(
-          message: message,
-          retryable: false,
-          severity: ErrorSeverity.high,
-        );
+    super.retryable = false,
+    super.severity = ErrorSeverity.high,
+  });
 
-  /// Certificate subject
-  final String? certificateSubject;
-
-  /// Certificate issuer
-  final String? certificateIssuer;
-
-  /// Certificate expiry date
-  final DateTime? certificateExpiryDate;
-
+  /// Creates a [SslException].
   factory SslException.certificateExpired({
     required String subject,
     required DateTime expiryDate,
@@ -253,6 +245,7 @@ class SslException extends NetworkException {
     );
   }
 
+  /// Creates a [SslException].
   factory SslException.hostnameMismatch({
     required String expectedHost,
     required String actualHost,
@@ -260,7 +253,8 @@ class SslException extends NetworkException {
     String? method,
   }) {
     return SslException(
-      message: 'SSL certificate hostname mismatch: expected $expectedHost, got $actualHost',
+      message: 'SSL certificate hostname mismatch: expected '
+          '$expectedHost, got $actualHost.',
       certificateSubject: actualHost,
       endpoint: endpoint,
       method: method,
@@ -268,6 +262,7 @@ class SslException extends NetworkException {
     );
   }
 
+  /// Creates a [SslException].
   factory SslException.untrustedCertificate({
     required String subject,
     String? issuer,
@@ -284,35 +279,44 @@ class SslException extends NetworkException {
     );
   }
 
+  /// Certificate subject
+  final String? certificateSubject;
+
+  /// Certificate issuer
+  final String? certificateIssuer;
+
+  /// Certificate expiry date
+  final DateTime? certificateExpiryDate;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'certificateSubject': certificateSubject,
-        'certificateIssuer': certificateIssuer,
-        'certificateExpiryDate': certificateExpiryDate?.toIso8601String(),
-      };
+    ...super.toJson(),
+    'certificateSubject': certificateSubject,
+    'certificateIssuer': certificateIssuer,
+    'certificateExpiryDate': certificateExpiryDate?.toIso8601String(),
+  };
 }
 
 /// Network unreachable exception
 class NetworkUnreachableException extends NetworkException {
+  /// Creates a [NetworkUnreachableException].
   const NetworkUnreachableException({
-    String message = 'Network is unreachable',
+    super.message = 'Network is unreachable',
     super.code = 'NETWORK_UNREACHABLE',
     super.stackTrace,
     super.details,
     super.endpoint,
     super.method,
-  }) : super(
-          message: message,
-          retryable: true,
-          severity: ErrorSeverity.high,
-        );
+    super.retryable = true,
+    super.severity = ErrorSeverity.high,
+  });
 }
 
 /// Socket exception (low-level socket errors)
 class SocketException extends NetworkException {
+  /// Creates a [SocketException].
   const SocketException({
-    required String message,
+    required super.message,
     super.code = 'SOCKET_ERROR',
     super.stackTrace,
     super.details,
@@ -320,25 +324,20 @@ class SocketException extends NetworkException {
     super.method,
     this.port,
     this.address,
-  }) : super(
-          message: message,
-          retryable: true,
-          severity: ErrorSeverity.medium,
-        );
+    super.retryable = true,
+    super.severity = ErrorSeverity.medium,
+  });
 
-  /// Port number
-  final int? port;
-
-  /// IP address
-  final String? address;
-
+  /// Creates a [SocketException].
   factory SocketException.connectionRefused({
     String? address,
     int? port,
     String? endpoint,
   }) {
     return SocketException(
-      message: 'Connection refused${address != null ? ' to $address' : ''}${port != null ? ':$port' : ''}',
+      message: 'Connection refused'
+          '${address != null ? ' to $address' : ''}'
+          '${port != null ? ':$port' : ''}',
       address: address,
       port: port,
       endpoint: endpoint,
@@ -346,36 +345,36 @@ class SocketException extends NetworkException {
     );
   }
 
+  /// Port number
+  final int? port;
+
+  /// IP address
+  final String? address;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'port': port,
-        'address': address,
-      };
+    ...super.toJson(),
+    'port': port,
+    'address': address,
+  };
 }
 
 /// WebSocket connection error
 class WebSocketException extends NetworkException {
+  /// Creates a [WebSocketException].
   const WebSocketException({
-    required String message,
+    required super.message,
     super.code = 'WEBSOCKET_ERROR',
     super.stackTrace,
     super.details,
     super.endpoint,
     this.closeCode,
     this.closeReason,
-  }) : super(
-          message: message,
-          retryable: true,
-          severity: ErrorSeverity.medium,
-        );
+    super.retryable = true,
+    super.severity = ErrorSeverity.medium,
+  });
 
-  /// WebSocket close code
-  final int? closeCode;
-
-  /// WebSocket close reason
-  final String? closeReason;
-
+  /// Creates a [WebSocketException].
   factory WebSocketException.connectionClosed({
     required int code,
     required String reason,
@@ -389,6 +388,7 @@ class WebSocketException extends NetworkException {
     );
   }
 
+  /// Creates a [WebSocketException].
   factory WebSocketException.connectionFailed({
     required String reason,
     String? endpoint,
@@ -401,26 +401,31 @@ class WebSocketException extends NetworkException {
     );
   }
 
+  /// WebSocket close code
+  final int? closeCode;
+
+  /// WebSocket close reason
+  final String? closeReason;
+
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'closeCode': closeCode,
-        'closeReason': closeReason,
-      };
+    ...super.toJson(),
+    'closeCode': closeCode,
+    'closeReason': closeReason,
+  };
 }
 
 /// Request cancelled exception (network-level cancellation)
 class RequestCancelledException extends NetworkException {
+  /// Creates a [RequestCancelledException].
   const RequestCancelledException({
-    String message = 'Request was cancelled',
+    super.message = 'Request was cancelled',
     super.code = 'REQUEST_CANCELLED',
     super.stackTrace,
     super.details,
     super.endpoint,
     super.method,
-  }) : super(
-          message: message,
-          retryable: false,
-          severity: ErrorSeverity.low,
-        );
+    super.retryable = false,
+    super.severity = ErrorSeverity.low,
+  });
 }

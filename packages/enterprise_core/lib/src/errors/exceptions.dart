@@ -1,5 +1,3 @@
-library exceptions;
-
 // Barrel file for all exceptions
 export 'exceptions/api_exceptions.dart';
 export 'exceptions/app_exception.dart';

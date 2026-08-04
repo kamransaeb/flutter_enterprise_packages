@@ -1,8 +1,9 @@
 /// Base exception class for all application-specific exceptions.
-/// 
+///
 /// This class provides a foundation for all custom exceptions in the app,
 /// ensuring consistent error handling, logging, and reporting.
 abstract class AppException implements Exception {
+  /// Creates an application exception with [message] and optional metadata.
   const AppException({
     required this.message,
     this.code,
@@ -28,8 +29,7 @@ abstract class AppException implements Exception {
 
   @override
   String toString() {
-    final buffer = StringBuffer('[$runtimeType] ');
-    buffer.write(message);
+    final buffer = StringBuffer('[$runtimeType] ')..write(message);
     if (code != null) buffer.write(' (Code: $code)');
     if (details != null && details!.isNotEmpty) {
       buffer.write(' | Details: $details');
@@ -39,13 +39,13 @@ abstract class AppException implements Exception {
 
   /// Convert exception to JSON for logging/analytics
   Map<String, dynamic> toJson() => {
-        'type': runtimeType.toString(),
-        'message': message,
-        'code': code,
-        'details': details,
-        'severity': severity.name,
-        'timestamp': DateTime.now().toIso8601String(),
-      };
+    'type': runtimeType.toString(),
+    'message': message,
+    'code': code,
+    'details': details,
+    'severity': severity.name,
+    'timestamp': DateTime.now().toIso8601String(),
+  };
 
   /// Create a copy with updated fields
   AppException copyWith({
@@ -70,11 +70,11 @@ abstract class AppException implements Exception {
 class _CopyException extends AppException {
   _CopyException({
     required super.message,
+    required this.originalException,
     super.code,
     super.stackTrace,
     super.details,
     super.severity,
-    required this.originalException,
   });
 
   final AppException originalException;

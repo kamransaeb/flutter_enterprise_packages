@@ -11,18 +11,20 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
+  connectivity_plus: ^7.3.1
+  device_info_plus: ^13.2.0  
+  dio: ^5.9.0
   enterprise_core:
     path: ../enterprise_core
   enterprise_logger:
-    path: ../enterprise_logger
-  dio: ^5.9.0
+    path: ../enterprise_logger  
+  flutter:
+    sdk: flutter    
+  internet_connection_checker_plus: ^2.7.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

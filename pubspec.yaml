@@ -6,6 +6,7 @@ environment:
   flutter: ">=1.17.0"
 
 workspace:
+  - apps/client_app_example
   - packages/enterprise_core
   - packages/enterprise_logger
   - packages/enterprise_network
@@ -13,6 +14,7 @@ workspace:
 
 dev_dependencies:
   melos: ^8.2.2
+  very_good_analysis: ^10.0.0
 
 # melos configuration instead of melos.yaml
 melos:

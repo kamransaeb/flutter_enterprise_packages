@@ -2,18 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// Permission type.
 enum PermissionType {
+  /// Camera.
   camera,
+  /// Photos.
   photos,
+  /// Location.
   location,
+  /// Microphone.
   microphone,
+  /// Contacts.
   contacts,
+  /// Calendar.
   calendar,
+  /// Reminders.
   reminders,
+  /// Notifications.
   notifications,
+  /// Storage.
   storage,
 }
 
+/// Permission helper.
 class PermissionHelper {
   static Map<PermissionType, Permission> _permissionMap = {
     PermissionType.camera: Permission.camera,
@@ -27,6 +38,7 @@ class PermissionHelper {
     PermissionType.storage: Permission.storage,
   };
 
+  /// Check permission.
   static Future<PermissionStatus> checkPermission(PermissionType type) async {
     try {
       final permission = _permissionMap[type];
@@ -40,6 +52,7 @@ class PermissionHelper {
     }
   }
 
+  /// Request permission.
   static Future<PermissionStatus> requestPermission(PermissionType type) async {
     try {
       final permission = _permissionMap[type];
@@ -53,25 +66,30 @@ class PermissionHelper {
     }
   }
 
+  /// Is granted.
   static Future<bool> isGranted(PermissionType type) async {
     final status = await checkPermission(type);
     return status.isGranted;
   }
 
+  /// Is permanently denied.
   static Future<bool> isPermanentlyDenied(PermissionType type) async {
     final status = await checkPermission(type);
     return status.isPermanentlyDenied;
   }
 
+  /// Should show request rationale.
   static Future<bool> shouldShowRequestRationale(PermissionType type) async {
     final status = await checkPermission(type);
     return status.isLimited || status.isDenied;
   }
 
+  /// Open app settings.
   static Future<void> openAppSettings() async {
     await openAppSettings();
   }
 
+  /// Check multiple permissions.
   static Future<Map<PermissionType, PermissionStatus>> checkMultiplePermissions(
     List<PermissionType> types,
   ) async {
@@ -85,6 +103,7 @@ class PermissionHelper {
     return results;
   }
 
+  /// Request multiple permissions.
   static Future<Map<PermissionType, PermissionStatus>> requestMultiplePermissions(
     List<PermissionType> types,
   ) async {
@@ -106,6 +125,7 @@ class PermissionHelper {
     return mappedResults;
   }
 
+  /// Get permission rationale message.
   static String getPermissionRationaleMessage(PermissionType type) {
     switch (type) {
       case PermissionType.camera:
@@ -129,6 +149,7 @@ class PermissionHelper {
     }
   }
 
+  /// Get permission denied message.
   static String getPermissionDeniedMessage(PermissionType type) {
     switch (type) {
       case PermissionType.camera:
@@ -152,6 +173,7 @@ class PermissionHelper {
     }
   }
 
+  /// Show permission dialog.
   static Future<void> showPermissionDialog(
     BuildContext context,
     PermissionType type, {

@@ -1,6 +1,7 @@
 // lib/core/constants/regex_constants.dart
 
-/// Centralized repository for all regex patterns used throughout the application
+/// Centralized repository for all regex patterns used throughout 
+/// the application
 class RegexConstants {
   const RegexConstants._();
 
@@ -15,7 +16,8 @@ class RegexConstants {
   );
 
   /// Password validation pattern - Strong password
-  /// Requires at least 8 characters, one uppercase, one lowercase, one number, one special character
+  /// Requires at least 8 characters, one uppercase, one lowercase, one number,
+  ///  one special character
   static final RegExp passwordStrong = RegExp(
     r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
   );
@@ -77,7 +79,10 @@ class RegexConstants {
 
   /// Credit card number validation (Luhn algorithm not included)
   static final RegExp creditCard = RegExp(
-    r'^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$',
+    '^(?:4[0-9]{12}(?:[0-9]{3})?'
+    '|5[1-5][0-9]{14}'
+    '|3[47][0-9]{13}'
+    r'|6(?:011|5[0-9]{2})[0-9]{12})$',
   );
 
   /// CVV/CVC validation (3-4 digits)
@@ -102,10 +107,15 @@ class RegexConstants {
   static final RegExp trailingCommaArrayPattern = RegExp(r',(\s*\])');
 
   /// Pattern to find unquoted JSON keys
-  static final RegExp unquotedKeyPattern = RegExp(r'([\{,]\s*)([a-zA-Z0-9_]+)(\s*:)');
+  static final RegExp unquotedKeyPattern = RegExp(
+    r'([\{,]\s*)([a-zA-Z0-9_]+)(\s*:)',
+  );
 
-  /// Pattern to find single quotes in JSON (should be replaced with double quotes)
-  static final RegExp singleQuotesPattern = RegExp(r"'([^'\\]*(?:\\.[^'\\]*)*)'");
+  /// Pattern to find single quotes in JSON (should be replaced with double 
+  /// quotes)
+  static final RegExp singleQuotesPattern = RegExp(
+    r"'([^'\\]*(?:\\.[^'\\]*)*)'",
+  );
 
   /// Pattern to find and remove null bytes from JSON string
   static final RegExp nullBytePattern = RegExp(r'\x00');
@@ -130,16 +140,18 @@ class RegexConstants {
   static final RegExp whitespace = RegExp(r'\s+');
 
   /// HTML tag pattern
-  static final RegExp htmlTags = RegExp(r'<[^>]*>');
+  static final RegExp htmlTags = RegExp('<[^>]*>');
 
   /// Email mention pattern (for extracting @mentions)
-  static final RegExp emailMention = RegExp(r'@([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})');
+  static final RegExp emailMention = RegExp(
+    r'@([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+  );
 
   /// Hashtag pattern (for extracting #hashtags)
-  static final RegExp hashtag = RegExp(r'#([A-Za-z0-9_]+)');
+  static final RegExp hashtag = RegExp('#([A-Za-z0-9_]+)');
 
   /// Mention pattern (for extracting @mentions)
-  static final RegExp mention = RegExp(r'@([A-Za-z0-9_]+)');
+  static final RegExp mention = RegExp('@([A-Za-z0-9_]+)');
 
   // ============================================================
   // DATE AND TIME PATTERNS
@@ -155,7 +167,9 @@ class RegexConstants {
   static final RegExp dateMMDDYYYY = RegExp(r'^\d{2}/\d{2}/\d{4}$');
 
   /// Time pattern (HH:MM:SS)
-  static final RegExp timeHHMMSS = RegExp(r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$');
+  static final RegExp timeHHMMSS = RegExp(
+    r'^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$',
+  );
 
   /// Time pattern (HH:MM)
   static final RegExp timeHHMM = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
@@ -184,7 +198,9 @@ class RegexConstants {
   static final RegExp apiKey = RegExp(r'^[A-Za-z0-9\-]{16,64}$');
 
   /// Base64 pattern
-  static final RegExp base64 = RegExp(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$');
+  static final RegExp base64 = RegExp(
+    r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$',
+  );
 
   // ============================================================
   // FILE PATTERNS
@@ -219,31 +235,38 @@ class RegexConstants {
   // ============================================================
 
   /// Check if string matches email pattern
-  static bool isValidEmail(String email) => email.hasMatch(RegexConstants.email);
+  static bool isValidEmail(String email) =>
+      email.hasMatch(RegexConstants.email);
 
   /// Check if string matches strong password pattern
-  static bool isStrongPassword(String password) => password.hasMatch(RegexConstants.passwordStrong);
+  static bool isStrongPassword(String password) =>
+      password.hasMatch(RegexConstants.passwordStrong);
 
   /// Check if string matches medium password pattern
-  static bool isMediumPassword(String password) => password.hasMatch(RegexConstants.passwordMedium);
+  static bool isMediumPassword(String password) =>
+      password.hasMatch(RegexConstants.passwordMedium);
 
   /// Check if string matches phone number pattern
-  static bool isValidPhone(String phone) => phone.hasMatch(RegexConstants.phoneInternational);
+  static bool isValidPhone(String phone) =>
+      phone.hasMatch(RegexConstants.phoneInternational);
 
   /// Check if string matches URL pattern
   static bool isValidUrl(String url) => url.hasMatch(RegexConstants.url);
 
   /// Check if string matches username pattern
-  static bool isValidUsername(String username) => username.hasMatch(RegexConstants.username);
+  static bool isValidUsername(String username) =>
+      username.hasMatch(RegexConstants.username);
 
   /// Check if string matches name pattern
   static bool isValidName(String name) => name.hasMatch(RegexConstants.name);
 
   /// Check if string matches hex color pattern
-  static bool isValidHexColor(String color) => color.hasMatch(RegexConstants.hexColor);
+  static bool isValidHexColor(String color) =>
+      color.hasMatch(RegexConstants.hexColor);
 
   /// Check if string matches JWT token pattern
-  static bool isValidJwtToken(String token) => token.hasMatch(RegexConstants.jwtToken);
+  static bool isValidJwtToken(String token) =>
+      token.hasMatch(RegexConstants.jwtToken);
 
   /// Check if string matches UUID pattern
   static bool isValidUuid(String uuid) => uuid.hasMatch(RegexConstants.uuid);

@@ -20,11 +20,11 @@ typedef ErrorReporter =
 /// Package-safe: no AppConfig, DI, Firebase, or Sentry.
 class ErrorHandler {
   /// Creates a new [ErrorHandler] instance.
-  const ErrorHandler({
-    required LoggerService loggerService,
+  const ErrorHandler(
+    this._loggerService,{
     this.enableLogging = true,
     this.errorReporter,
-  }) : _loggerService = loggerService;
+  });
 
   final LoggerService _loggerService;
 
@@ -47,7 +47,6 @@ class ErrorHandler {
         error,
         stackTrace: stackTrace,
         reason: reason,
-        fatal: false,
       );
     }
 
@@ -106,7 +105,6 @@ class ErrorHandler {
       error,
       stackTrace: stackTrace,
       reason: reason ?? 'non_fatal_error',
-      fatal: false,
       extra: extra,
     );
   }
@@ -126,7 +124,7 @@ class ErrorHandler {
         fatal: fatal,
         extra: extra,
       );
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       if (enableLogging) {
         _loggerService.e(
           'Failed to report error',
@@ -568,8 +566,8 @@ class ErrorHandler {
           details: exception.details,
           message: exception.message,
         );
-      case final InvalidCredentialsException ex:
-        return InvalidCredentialsFailure(
+      case final InvalidCredentialsException _:
+        return InvalidCredentialsFailure(      
           message: exception.message,
           details: exception.details,
         );
@@ -585,7 +583,7 @@ class ErrorHandler {
           message: exception.message,
           details: exception.details,
         );
-      case final AccountDisabledException ex:
+      case final AccountDisabledException _:
         return AccountDisabledFailure(message: exception.message);
       case final TwoFactorRequiredException ex:
         return TwoFactorRequiredFailure(
@@ -603,8 +601,7 @@ class ErrorHandler {
           fileName: ex.fileName,
           details: exception.details,
         );
-      case final FileTooLargeException ex:
-        final ex = exception as FileTooLargeException;
+      case final FileTooLargeException ex:        
         return FileTooLargeFailure(
           fileSize: ex.fileSize,
           maxSize: ex.maxSize,
@@ -659,7 +656,6 @@ class ErrorHandler {
       default:
         return ServerFailure(
           message: exception.message,
-          retryable: true,
           details: exception.details,
         );
     }
@@ -741,7 +737,6 @@ class ErrorHandler {
         }
         return ServerFailure(
           message: error.message ?? 'An unknown error occurred',
-          retryable: true,
           endpoint: error.requestOptions.path,
         );
     }
@@ -807,7 +802,6 @@ class ErrorHandler {
         return ServerFailure(
           message: message ?? 'Server error',
           code: 'SERVER_ERROR',
-          retryable: true,
           statusCode: statusCode,
           endpoint: endpoint,
           details: validationErrors,
@@ -816,7 +810,6 @@ class ErrorHandler {
         return ServerFailure(
           message: message ?? 'An error occurred',
           statusCode: statusCode,
-          retryable: true,
           endpoint: endpoint,
           details: validationErrors,
         );
@@ -841,20 +834,22 @@ class ErrorHandler {
       // Handle different error formats
       if (data['errors'] is Map) {
         final errors = <String, List<String>>{};
-        (data['errors'] as Map).forEach((key, value) {
+        for (final entry in (data['errors'] as Map).entries) {
+          final value = entry.value;
           if (value is List) {
-            errors[key.toString()] = value.map((e) => e.toString()).toList();
+            errors[entry.key.toString()] =
+                value.map((e) => e.toString()).toList();
           } else if (value is String) {
-            errors[key.toString()] = [value.toString()];
+            errors[entry.key.toString()] = [value];
           }
-        });
+        }
         return errors;
       }
 
       // Handle Laravel-style errors
       if (data['errors'] is List) {
         final errors = <String, List<String>>{};
-        (data['errors'] as List).forEach((error) {
+        for (final error in data['errors'] as List) {
           if (error is Map) {
             final field = error['field'] ?? error['param'];
             final message = error['message'];
@@ -863,7 +858,7 @@ class ErrorHandler {
               errors[field.toString()]!.add(message.toString());
             }
           }
-        });
+        }
         return errors;
       }
     }
