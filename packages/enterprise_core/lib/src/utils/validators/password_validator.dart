@@ -4,16 +4,22 @@ import 'package:formz/formz.dart';
 enum PasswordValidationError {
   /// Invalid.
   invalid,
+
   /// Empty.
   empty,
+
   /// Too short.
   tooShort,
+
   /// No uppercase.
   noUppercase,
+
   /// No lowercase.
   noLowercase,
+
   /// No digit.
   noDigit,
+
   /// No special character.
   noSpecialCharacter,
 }
@@ -22,8 +28,9 @@ enum PasswordValidationError {
 class Password extends FormzInput<String, PasswordValidationError> {
   /// Pure.
   const Password.pure() : super.pure('');
+
   /// Dirty.
-  const Password.dirty([String value = '']) : super.dirty(value);
+  const Password.dirty([super.value = '']) : super.dirty();
 
   /// Validator.
   @override
@@ -34,13 +41,13 @@ class Password extends FormzInput<String, PasswordValidationError> {
     if (value.length < 8) {
       return PasswordValidationError.tooShort;
     }
-    if (!value.contains(RegExp(r'[A-Z]'))) {
+    if (!value.contains(RegExp('[A-Z]'))) {
       return PasswordValidationError.noUppercase;
     }
-    if (!value.contains(RegExp(r'[a-z]'))) {
+    if (!value.contains(RegExp('[a-z]'))) {
       return PasswordValidationError.noLowercase;
     }
-    if (!value.contains(RegExp(r'[0-9]'))) {
+    if (!value.contains(RegExp('[0-9]'))) {
       return PasswordValidationError.noDigit;
     }
     if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
@@ -51,35 +58,32 @@ class Password extends FormzInput<String, PasswordValidationError> {
 
   /// Get error message.
   static String? getErrorMessage(PasswordValidationError? error) {
-    switch (error) {
-      case PasswordValidationError.empty:
-        return 'Password is required';
-      case PasswordValidationError.tooShort:
-        return 'Password must be at least 8 characters';
-      case PasswordValidationError.noUppercase:
-        return 'Password must contain at least one uppercase letter';
-      case PasswordValidationError.noLowercase:
-        return 'Password must contain at least one lowercase letter';
-      case PasswordValidationError.noDigit:
-        return 'Password must contain at least one number';
-      case PasswordValidationError.noSpecialCharacter:
-        return 'Password must contain at least one special character';
-      case PasswordValidationError.invalid:
-        return 'Invalid password';
-      default:
-        return null;
-    }
+    return switch (error) {
+      PasswordValidationError.empty => 'Password is required',
+      PasswordValidationError.tooShort =>
+        'Password must be at least 8 characters',
+      PasswordValidationError.noUppercase =>
+        'Password must contain at least one uppercase letter',
+      PasswordValidationError.noLowercase =>
+        'Password must contain at least one lowercase letter',
+      PasswordValidationError.noDigit =>
+        'Password must contain at least one number',
+      PasswordValidationError.noSpecialCharacter =>
+        'Password must contain at least one special character',
+      PasswordValidationError.invalid => 'Invalid password',
+      null => null,
+    };
   }
 
   /// Get validation rules.
   static String getValidationRules() {
-    return '''
+    return r'''
 Password must contain:
 • At least 8 characters
 • At least one uppercase letter
 • At least one lowercase letter
 • At least one number
-• At least one special character (!@#\$%^&*(),.?":{}|<>)
+• At least one special character (!@#$%^&*(),.?":{}|<>)
 ''';
   }
 }

@@ -22,7 +22,7 @@ melos:
   sdkPath: .fvm/flutter_sdk
   scripts:
     analyze:
-      run: melos exec -- flutter analyze
+      run: melos exec --concurrency=1 -- flutter analyze
       description: "Analyze all packages"
     test:
       run: melos exec --dir-exists=test -- flutter test

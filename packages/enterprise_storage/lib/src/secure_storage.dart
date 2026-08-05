@@ -26,7 +26,7 @@ class SecureStorage implements LocalStorage {
       await _storage.delete(key: '_test');
       _isInitialized = true;
       _logger.i('[SecureStorage] initialized');
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       _logger.e(
         '[SecureStorage] init failed',
         error: e,
@@ -42,7 +42,7 @@ class SecureStorage implements LocalStorage {
       final stringValue = value is String ? value : jsonEncode(value);
       await _storage.write(key: key, value: stringValue);
       _logger.d('[SecureStorage] wrote: $key');
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       _logger.e(
         '[SecureStorage] write failed: $key',
         error: e,
@@ -61,12 +61,12 @@ class SecureStorage implements LocalStorage {
       if (T != String) {
         try {
           return jsonDecode(value) as T;
-        } catch (_) {
+        } on Object catch (_) {
           return value as T;
         }
       }
       return value as T;
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       _logger.e(
         '[SecureStorage] read failed: $key',
         error: e,

@@ -2,7 +2,6 @@ import 'package:client_app_example/bootstrap/storage_initializer.dart';
 import 'package:client_app_example/di/injection.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 Future<void> main() async {
   // ensure the binding is initialized before anything else.
