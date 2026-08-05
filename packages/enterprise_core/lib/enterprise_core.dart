@@ -1,6 +1,5 @@
 export 'src/constants/duration_constants.dart';
 export 'src/constants/regex_constants.dart';
-export 'src/constants/storage_constants.dart';
 export 'src/errors/error_handler.dart';
 export 'src/errors/exceptions.dart';
 export 'src/errors/failures.dart';
