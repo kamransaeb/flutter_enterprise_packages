@@ -1,5 +1,9 @@
-import 'package:client_app_example/bootstrap/storage_initializer.dart';
+import 'dart:async';
+
+import 'package:client_app_example/bootstrap/initialize_app_services.dart';
 import 'package:client_app_example/di/injection.dart';
+import 'package:client_app_example/errors/error_mapper.dart';
+import 'package:enterprise_core/enterprise_core.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -11,13 +15,15 @@ Future<void> main() async {
   await configureDependencies();
 
   // initialize the storage.
-  await initializeStorage();
+  await initializeAppServices();
 
   // run the app.
   runApp(const ClientAppExample());
 }
 
+/// The main app widget.
 class ClientAppExample extends StatelessWidget {
+  /// Creates a [ClientAppExample] widget.
   const ClientAppExample({super.key});
 
   @override
@@ -33,7 +39,9 @@ class ClientAppExample extends StatelessWidget {
   }
 }
 
+/// A demo page that shows how to use the storage.
 class StorageDemoPage extends StatefulWidget {
+  /// Creates a [StorageDemoPage] widget.
   const StorageDemoPage({super.key});
 
   @override
@@ -47,7 +55,7 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
   @override
   void initState() {
     super.initState();
-    _load();
+    unawaited(_load());
   }
 
   Future<void> _load() async {
@@ -66,6 +74,17 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
     setState(() => _counter = next);
   }
 
+  void _showErrorMessage() {
+    final failure = getIt<ErrorHandler>().handleError(
+      Exception('demo boom'),
+      reason: 'sorage demo',
+    );
+    final message = ErrorMapper.toUserMessage(failure);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,9 +95,19 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _increment,
-        child: const Icon(Icons.add),
+      floatingActionButton:
+      Column( 
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _increment,
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            onPressed: _showErrorMessage,
+            child: const Icon(Icons.bug_report),
+          ),
+        ],
       ),
     );
   }

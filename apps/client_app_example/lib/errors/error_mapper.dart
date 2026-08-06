@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:enterprise_core/enterprise_core.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +11,9 @@ import 'package:flutter/material.dart';
 class ErrorMapper {
   const ErrorMapper._();
 
-  // ============================================================================
+  // ===========================================================================
   // User Messages
-  // ============================================================================
+  // ===========================================================================
 
   /// Convert failure to user-friendly message
   static String toUserMessage(Failure failure) {
@@ -30,7 +32,7 @@ class ErrorMapper {
       case SslFailure _:
         return 'ssl_error'.tr();
 
-      case HttpStatusFailure f:
+      case final HttpStatusFailure f:
         return _mapHttpStatusFailure(f);
 
       case RequestCancelledFailure _:
@@ -45,11 +47,11 @@ class ErrorMapper {
       case WebSocketFailure _:
         return 'web_socket_error'.tr();
 
-      case NetworkFailure f:
+      case final NetworkFailure f:
         return _mapNetworkFailure(f);
 
       // Serialization failures
-      case JsonSerializationFailure f:
+      case final JsonSerializationFailure f:
         return _mapJsonSerializationFailure(f);
 
       case ModelConversionFailure _:
@@ -68,38 +70,38 @@ class ErrorMapper {
         return 'invalid_value_error'.tr();
 
       // Device failures
-      case HardwareNotAvailableFailure f:
+      case final HardwareNotAvailableFailure f:
         return _mapHardwareFailure(f);
 
-      case SensorFailure f:
+      case final SensorFailure f:
         return _mapSensorFailure(f);
 
-      case BiometricFailure f:
+      case final BiometricFailure f:
         return _mapBiometricFailure(f);
 
-      case CameraFailure f:
+      case final CameraFailure f:
         return _mapCameraFailure(f);
 
-      case MicrophoneFailure f:
+      case final MicrophoneFailure f:
         return _mapMicrophoneFailure(f);
 
-      case LocationFailure f:
+      case final LocationFailure f:
         return _mapLocationFailure(f);
 
-      case BluetoothFailure f:
+      case final BluetoothFailure f:
         return _mapBluetoothFailure(f);
 
-      case BatteryFailure f:
+      case final BatteryFailure f:
         return _mapBatteryFailure(f);
 
-      case StorageDeviceFailure f:
+      case final StorageDeviceFailure f:
         return _mapStorageFailure(f);
 
-      case DisplayFailure f:
+      case final DisplayFailure f:
         return _mapDisplayFailure(f);
 
       // Server failures
-      case ServerFailure f:
+      case final ServerFailure f:
         return _mapServerFailure(f);
 
       // Authentication failures
@@ -112,7 +114,7 @@ class ErrorMapper {
       case EmailNotVerifiedFailure _:
         return 'email_not_verified_error'.tr();
 
-      case AccountLockedFailure f:
+      case final AccountLockedFailure f:
         return 'account_locked_error'.tr(
           args: [f.remainingTime.inMinutes.toString()],
         );
@@ -124,18 +126,18 @@ class ErrorMapper {
       case FormValidationFailure _:
         return 'form_validation_error'.tr();
 
-      case ValidationFailure f:
+      case final ValidationFailure f:
         return _mapValidationFailure(f);
 
       // Permission failures
-      case PermissionFailure f:
+      case final PermissionFailure f:
         return _mapPermissionFailure(f);
 
       // File failures
       case FileNotFoundFailure _:
         return 'file_not_found_error'.tr();
 
-      case FileTooLargeFailure f:
+      case final FileTooLargeFailure f:
         return 'file_too_large_error'.tr(
           namedArgs: {
             'file_size': _formatSize(f.fileSize),
@@ -144,7 +146,7 @@ class ErrorMapper {
         );
 
       // Payment failures
-      case PaymentDeclinedFailure f:
+      case final PaymentDeclinedFailure f:
         return f.declineReason != null
             ? 'Payment declined: ${f.declineReason}'
             : 'payment_declined_error'.tr();
@@ -172,9 +174,9 @@ class ErrorMapper {
     }
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Network Message Mappers
-  // ============================================================================
+  // ===========================================================================
 
   static String _mapNetworkFailure(NetworkFailure failure) {
     if (failure.timeout) {
@@ -202,9 +204,9 @@ class ErrorMapper {
     return failure.message;
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Serialization Message Mappers
-  // ============================================================================
+  // ===========================================================================
 
   static String _mapJsonSerializationFailure(JsonSerializationFailure failure) {
     if (failure.jsonPath != null) {
@@ -213,9 +215,9 @@ class ErrorMapper {
     return 'invalid_data_error'.tr();
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Device Message Mappers
-  // ============================================================================
+  // ===========================================================================
 
   static String _mapHardwareFailure(HardwareNotAvailableFailure failure) {
     final hardware = failure.deviceFeature ?? 'hardware';
@@ -280,7 +282,7 @@ class ErrorMapper {
   static String _mapLocationFailure(LocationFailure failure) {
     switch (failure.code) {
       case 'LOCATION_SERVICES_DISABLED':
-        return 'location_services_disabled_error'.tr();  
+        return 'location_services_disabled_error'.tr();
       case 'LOCATION_PERMISSION_DENIED':
         return 'location_permission_error'.tr();
       case 'LOCATION_PERMISSION_PERMANENTLY_DENIED':
@@ -314,7 +316,9 @@ class ErrorMapper {
   static String _mapBatteryFailure(BatteryFailure failure) {
     if (failure.batteryLevel != null) {
       if (failure.batteryLevel! <= 15) {
-        return 'critical_battery_error'.tr(args: [failure.batteryLevel!.toString()]);
+        return 'critical_battery_error'.tr(
+          args: [failure.batteryLevel!.toString()],
+        );
       }
       if (failure.batteryLevel! <= 20) {
         return 'low_battery_error'.tr(args: [failure.batteryLevel!.toString()]);
@@ -357,7 +361,9 @@ class ErrorMapper {
 
   static String _mapValidationFailure(ValidationFailure failure) {
     if (failure.field != null && failure.rule != null) {
-      return 'field_validation_error'.tr(args: [failure.field!, failure.message]);
+      return 'field_validation_error'.tr(
+        args: [failure.field!, failure.message],
+      );
     }
     return failure.message;
   }
@@ -378,9 +384,9 @@ class ErrorMapper {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
-  // ============================================================================
+  // ===========================================================================
   // SnackBar
-  // ============================================================================
+  // ===========================================================================
 
   /// Convert failure to a SnackBar
   static SnackBar toSnackBar(
@@ -452,9 +458,9 @@ class ErrorMapper {
     return null;
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Dialogs
-  // ============================================================================
+  // ===========================================================================
 
   /// Show error dialog for failure
   static Future<void> showErrorDialog({
@@ -529,7 +535,7 @@ class ErrorMapper {
               onPressed: () {
                 Navigator.pop(dialogContext);
                 _trackErrorAction(failure, 'open_settings');
-                _openAppSettings(failure);
+                 unawaited(_openAppSettings(failure));
               },
               child: Text('open_settings'.tr()),
             ),
@@ -669,9 +675,9 @@ class ErrorMapper {
     return '';
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Error Widgets
-  // ============================================================================
+  // ===========================================================================
 
   /// Build error widget for UI
   static Widget buildErrorWidget({
@@ -685,7 +691,7 @@ class ErrorMapper {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -796,16 +802,16 @@ class ErrorMapper {
     }
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Helpers
-  // ============================================================================
+  // ===========================================================================
 
   /// Check if failure is retryable
   static bool _isRetryable(Failure failure) {
     switch (failure) {
-      case NetworkFailure f:
+      case final NetworkFailure f:
         return f.retryable;
-      case ServerFailure f:
+      case final ServerFailure f:
         return f.retryable;
       default:
         return false;
@@ -867,9 +873,9 @@ class ErrorMapper {
     }
   }
 
-  // ============================================================================
+  // ===========================================================================
   // Analytics Tracking
-  // ============================================================================
+  // ===========================================================================
 
   static void _trackErrorShown(Failure failure, String uiElement) {
     // Track error in analytics

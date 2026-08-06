@@ -27,15 +27,15 @@ abstract class NetworkModule {
     InternetConnection internetConnection,
     LoggerService logger,
   ) => NetworkHelper(
+    logger,
     connectivity: connectivity,
-    internetConnection: internetConnection,
-    logger: logger,
+    internetConnection: internetConnection,    
   );
 
   /// Provides [JsonTransformer] for request/response JSON mapping.
   @lazySingleton
   JsonTransformer jsonTransformer(LoggerService logger) =>
-      JsonTransformer(logger: logger);
+      JsonTransformer(logger);
 
   /// Provides [DeviceNetworkInfo] backed by [DeviceInfoPlugin].
   @lazySingleton
