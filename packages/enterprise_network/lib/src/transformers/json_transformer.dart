@@ -4,15 +4,15 @@ import 'package:enterprise_logger/enterprise_logger.dart';
 
 /// Example:
 /// getIt.registerLazySingleton`<JsonTransformer>`(
-///  () => JsonTransformer(logger: getIt`<LoggerService>`()),
+///  () => JsonTransformer(getIt`<LoggerService>`()),
 ///);
 
 /// Dio-aware JSON decode/encode helpers.
 class JsonTransformer {
   /// Creates a [JsonTransformer].
-  JsonTransformer({this._logger});
+  JsonTransformer(this._logger);
 
-  final LoggerService? _logger;
+  final LoggerService _logger;
 
   /// Decodes [data] (or a Dio [Response]'s body) into a map.
   Map<String, dynamic> toJson(dynamic data) {
@@ -20,7 +20,7 @@ class JsonTransformer {
       if (data is Response) return toJson(data.data);
       return JsonSerializer.decodeMap(data);
     } on Object catch (e, stackTrace) {
-      _logger?.e(
+      _logger.e(
         'Failed to convert to JSON',
         error: e,
         stackTrace: stackTrace,
@@ -35,7 +35,7 @@ class JsonTransformer {
       if (data is Response) return toJsonList(data.data);
       return JsonSerializer.decodeList(data);
     } on Object catch (e, stackTrace) {
-      _logger?.e(
+      _logger.e(
         'Failed to convert to JSON list',
         error: e,
         stackTrace: stackTrace,

@@ -64,7 +64,9 @@ extension ContextExtensions on BuildContext {
   void pop<T>([T? result]) => navigator.pop(result);
 
   /// The current [Locale] from [Localizations].
-  Locale get locale => Localizations.localeOf(this);
+  /// Locale get locale => Localizations.localeOf(this);
+  /// Use EasyLocalization.locale instead.
+  // Locale get locale => EasyLocalization.of(this).locale;
 
   /// Whether text direction is right-to-left.
   bool get isRTL => Directionality.of(this) == TextDirection.rtl;

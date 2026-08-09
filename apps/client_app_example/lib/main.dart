@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:client_app_example/bootstrap/initialize_app_services.dart';
 import 'package:client_app_example/di/injection.dart';
 import 'package:client_app_example/errors/error_mapper.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:enterprise_core/enterprise_core.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,9 @@ Future<void> main() async {
   // ensure the binding is initialized before anything else.
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ensure the easy localization is initialized.
+  await EasyLocalization.ensureInitialized();
+
   // initialize the dependencies.
   await configureDependencies();
 
@@ -18,7 +22,14 @@ Future<void> main() async {
   await initializeAppServices();
 
   // run the app.
-  runApp(const ClientAppExample());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('tr')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: const ClientAppExample(),
+    ),
+  );
 }
 
 /// The main app widget.
@@ -34,6 +45,9 @@ class ClientAppExample extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       home: const StorageDemoPage(),
     );
   }
@@ -60,6 +74,7 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
 
   Future<void> _load() async {
     final value = await _prefs.read<int>('demo_counter') ?? 0;
+    if (!mounted) return;
     setState(() {
       _counter = value;
     });
@@ -95,8 +110,7 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
       ),
-      floatingActionButton:
-      Column( 
+      floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(

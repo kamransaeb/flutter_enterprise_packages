@@ -14,25 +14,25 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 /// ```
 class NetworkHelper {
   /// Creates a [NetworkHelper].
-  NetworkHelper({
+  NetworkHelper(
+    this._logger, {
     Connectivity? connectivity,
     InternetConnection? internetConnection,
-    this._logger,
-  })  : _connectivity = connectivity ?? Connectivity(),
-        _internetConnection = internetConnection ?? InternetConnection();
+  }) : _connectivity = connectivity ?? Connectivity(),
+       _internetConnection = internetConnection ?? InternetConnection();
 
   final Connectivity _connectivity;
   final InternetConnection _internetConnection;
-  final LoggerService? _logger;
+  final LoggerService _logger;
 
   /// True when the device appears to have real internet access.
   Future<bool> get hasInternetAccess async {
     try {
       final isConnected = await _internetConnection.hasInternetAccess;
-      _logger?.d('Internet connection check: $isConnected');
+      _logger.d('Internet connection check: $isConnected');
       return isConnected;
     } on Object catch (e, stackTrace) {
-      _logger?.e(
+      _logger.e(
         'Error checking internet connection',
         error: e,
         stackTrace: stackTrace,
@@ -50,7 +50,7 @@ class NetworkHelper {
         orElse: () => ConnectivityResult.none,
       );
     } on Object catch (e, stackTrace) {
-      _logger?.e(
+      _logger.e(
         'Error checking connectivity',
         error: e,
         stackTrace: stackTrace,
@@ -76,7 +76,7 @@ class NetworkHelper {
       final results = await _connectivity.checkConnectivity();
       return results.any((r) => r != ConnectivityResult.none);
     } on Object catch (e, stackTrace) {
-      _logger?.e(
+      _logger.e(
         'Error checking network connection',
         error: e,
         stackTrace: stackTrace,
@@ -114,12 +114,12 @@ class NetworkHelper {
     final start = DateTime.now();
     while (DateTime.now().difference(start) < timeout) {
       if (await hasInternetAccess) {
-        _logger?.i('Internet connection established');
+        _logger.i('Internet connection established');
         return true;
       }
       await Future<void>.delayed(checkInterval);
     }
-    _logger?.w('Timeout waiting for internet connection');
+    _logger.w('Timeout waiting for internet connection');
     return false;
   }
 

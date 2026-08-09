@@ -165,6 +165,22 @@ class ErrorHandler {
           method: ex.method,
           details: exception.details,
         );
+      case final SendTimeoutException ex:
+        return SendTimeoutFailure(
+          message: exception.message,
+          timeoutDuration: ex.timeoutDuration,
+          endpoint: ex.endpoint,
+          method: ex.method,
+          details: exception.details,
+        );
+      case final ReceiveTimeoutException ex:
+        return ReceiveTimeoutFailure(
+          message: exception.message,
+          timeoutDuration: ex.timeoutDuration,
+          endpoint: ex.endpoint,
+          method: ex.method,
+          details: exception.details,
+        );
       case final DnsResolutionException ex:
         return DnsResolutionFailure(
           message: exception.message,

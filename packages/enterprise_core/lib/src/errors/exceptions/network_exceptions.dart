@@ -184,6 +184,56 @@ class ConnectionTimeoutException extends NetworkException {
   };
 }
 
+/// Send timeout exception
+class SendTimeoutException extends NetworkException {
+  /// Creates a [SendTimeoutException].
+  const SendTimeoutException({
+    super.message = 'Send timeout. Please try again.',
+    super.code = 'SEND_TIMEOUT',
+    super.stackTrace,
+    super.details,
+    super.endpoint,
+    super.method,
+    this.timeoutDuration,
+    super.retryable = true,
+    super.severity = ErrorSeverity.medium,
+  });
+
+  /// Duration that was exceeded
+  final Duration? timeoutDuration;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    ...super.toJson(),
+    'timeoutDuration': timeoutDuration?.inSeconds,
+  };
+}
+
+/// Receive timeout exception
+class ReceiveTimeoutException extends NetworkException {
+  /// Creates a [ReceiveTimeoutException].
+  const ReceiveTimeoutException({
+    super.message = 'Receive timeout. Please try again.',
+    super.code = 'RECEIVE_TIMEOUT',
+    super.stackTrace,
+    super.details,
+    super.endpoint,
+    super.method,
+    this.timeoutDuration,
+    super.retryable = true,
+    super.severity = ErrorSeverity.medium,
+  });
+
+  /// Duration that was exceeded
+  final Duration? timeoutDuration;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    ...super.toJson(),
+    'timeoutDuration': timeoutDuration?.inSeconds,
+  };
+}
+
 /// DNS resolution failed exception
 class DnsResolutionException extends NetworkException {
   /// Creates a [DnsResolutionException].
