@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
+import 'package:enterprise_network/src/constants/network_constants.dart';
 
 /// Retries transient failures with exponential backoff.
 ///
@@ -10,11 +11,11 @@ class RetryInterceptor extends Interceptor {
   RetryInterceptor(
     this._logger, {
     this.dio,
-    this.maxRetries = 3,
-    this.baseDelay = const Duration(milliseconds: 500),
-    this.retryStatusCodes = const {408, 429, 500, 502, 503, 504},
-    this.retryMethods = const {'GET', 'HEAD', 'OPTIONS'},
-    this.retryCountExtraKey = 'retryCount',
+    this.maxRetries = NetworkConstants.maxRetries,
+    this.baseDelay = NetworkConstants.retryBaseDelay,
+    this.retryStatusCodes = NetworkConstants.retryStatusCodes,
+    this.retryMethods = NetworkConstants.retryMethods,
+    this.retryCountExtraKey = NetworkConstants.retryCountExtraKey,
   });
 
   final LoggerService _logger;

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:enterprise_network/src/constants/network_constants.dart';
 import 'package:flutter/foundation.dart';
 
 /// final deviceInfo = DeviceNetworkInfo();
@@ -76,10 +77,10 @@ class DeviceNetworkInfo {
   /// Headers safe to attach to Dio requests.
   Map<String, String> toHeaders() {
     return {
-      'Platform': ?platform,
-      'Device-Model': ?deviceModel,
-      'OS-Version': ?osVersion,
-      'Device-Id': ?deviceId,
+      NetworkConstants.platform: ?platform,
+      NetworkConstants.deviceModel: ?deviceModel,
+      NetworkConstants.osVersion: ?osVersion,
+      NetworkConstants.deviceId: ?deviceId,
     };
   }
 }

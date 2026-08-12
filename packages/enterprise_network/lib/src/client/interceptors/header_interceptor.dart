@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 
+import 'package:enterprise_network/src/constants/network_constants.dart';
 import 'package:enterprise_network/src/device/device_network_info.dart';
 
 /// Provides extra headers from the consumer app (version, locale, env, …).
@@ -17,7 +18,7 @@ typedef HeaderProvider = Map<String, String> Function();
 ///   appHeaders: () => {
 ///     'App-Version': '1.0.0',           // from package_info in app
 ///     'Build-Number': '1',
-///     'Accept-Language': 'en',          // from EasyLocalization / locale
+///     NetworkConstants.acceptLanguage: 'en',
 ///     // 'X-Environment': 'dev',        // only in debug
 ///   },
 /// ),
@@ -42,8 +43,14 @@ class HeaderInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Defaults (do not overwrite if already set by caller)
-    options.headers.putIfAbsent('Content-Type', () => 'application/json');
-    options.headers.putIfAbsent('Accept', () => 'application/json');
+    options.headers.putIfAbsent(
+      NetworkConstants.contentType,
+      () => NetworkConstants.applicationJson,
+    );
+    options.headers.putIfAbsent(
+      NetworkConstants.accept,
+      () => NetworkConstants.applicationJson,
+    );
 
     // Device headers from DeviceNetworkInfo
     for (final entry in _deviceNetworkInfo.toHeaders().entries) {
@@ -58,13 +65,13 @@ class HeaderInterceptor extends Interceptor {
 
     if (includeTimestap) {
       options.headers.putIfAbsent(
-        'X-Timestamp',
+        NetworkConstants.xTimestamp,
         () => DateTime.now().toUtc().toIso8601String(),
       );
     }
     if (includeCorrelationId) {
       options.headers.putIfAbsent(
-        'X-Correlation-Id',
+        NetworkConstants.xCorrelationId,
         _generateCorrelationId,
       );
     }

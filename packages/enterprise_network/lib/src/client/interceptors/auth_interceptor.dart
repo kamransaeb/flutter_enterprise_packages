@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
+import 'package:enterprise_network/src/constants/network_constants.dart';
 
 /// A function that reads the token from the storage.
 typedef TokenReader = Future<String?> Function();
@@ -10,7 +11,7 @@ typedef TokenReader = Future<String?> Function();
 typedef TokenRefresher = Future<String?> Function();
 
 /// A function that handles the expired token.
-typedef TokenExpiredHandler = Future<String?> Function();
+typedef TokenExpiredHandler = Future<void> Function();
 
 /// Attaches Bearer tokens and refreshes once on HTTP 401.
 ///
@@ -18,6 +19,26 @@ typedef TokenExpiredHandler = Future<String?> Function();
 /// A shared [Completer] ensures concurrent 401s wait on the **same** refresh.
 ///
 /// Storage / refresh HTTP stay in the app via callbacks — no secure storage here.
+
+// With a normal Interceptor, Dio can run several requests in parallel.
+// With QueuedInterceptor, Dio queues the requests and rund onRequest, 
+// onResponse, onError one at a time.
+// *** Why that matters for auth
+// Imagine 3 API calls all get 401 at once:
+// - Interceptor (parallel):
+// Three onErrors run together
+// All three may call _refreshTokens() (or race on token read/write)
+// Retries can use a half-updated token
+// Your Completer helps, but you still have races around storage, Dio state,
+// and “who retries when”
+// - QueuedInterceptor (serialized):
+// First 401 enters onError, refreshes, retries
+// The other two wait in Dio’s queue until that interceptor finishes
+// Refresh logic is much safer; fewer concurrent mutations
+
+// Why Completer?
+// Three requests get 401 at the same time. You want one refresh, not three.
+
 class AuthInterceptor extends QueuedInterceptor {
   /// Creates a new [AuthInterceptor].
   AuthInterceptor(
@@ -25,8 +46,8 @@ class AuthInterceptor extends QueuedInterceptor {
     this._getAccessToken,
     this._refreshTokens,
     this._onTokenExpired, {
-    this.skipAuthExtraKey = 'skipAuth',
-    this.isRefreshCallExtraKey = 'isRefreshCall',
+    this.skipAuthExtraKey = NetworkConstants.skipAuthExtraKey,
+    this.isRefreshCallExtraKey = NetworkConstants.isRefreshCallExtraKey,
   });
 
   /// The logger to be used.
@@ -53,12 +74,16 @@ class AuthInterceptor extends QueuedInterceptor {
 
   // A Completer<T> is a Dart object that lets you create and complete a
   // Future<T> manually.
-  // Normally a Future finishes when an asyn function returns or an API 
+  // Normally a Future finishes when an async function returns or an API
   // resolves. With a Completer you can:
   // 1. Create: final c = Completer<String?>();
   // 2. Hand out: c.future to waiters.
+  // 3. Complete: c.complete(value);
+  // 4. Complete with error: c.completeError(error);
+
   /// In-flight refresh shared by concurrent 401 handlers.
-  Completer<String?>? _refreshCompleter;
+  /// 
+  // Completer<String?>? _refreshCompleter;
 
   @override
   Future<void> onRequest(
@@ -73,7 +98,8 @@ class AuthInterceptor extends QueuedInterceptor {
     try {
       final accessToken = await _getAccessToken();
       if (accessToken != null && accessToken.isNotEmpty) {
-        options.headers['Authroization'] = 'Bearer $accessToken';
+        options.headers[NetworkConstants.authorization] =
+            '${NetworkConstants.bearerPrefix}$accessToken';
       }
       handler.next(options);
     } on Object catch (e, stackTrace) {
@@ -87,7 +113,7 @@ class AuthInterceptor extends QueuedInterceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    if (err.response?.statusCode != 401) {
+    if (err.response?.statusCode != NetworkConstants.unauthorizedStatusCode) {
       return handler.next(err);
     }
 
@@ -110,13 +136,14 @@ class AuthInterceptor extends QueuedInterceptor {
     // 2. Other failed calls must wait, then retry
     // QueuedInterceptor already serializes; still safe to wait/retry below
     try {
-      final newToken = await _refreshAccessToken();
+      final newToken = await _refreshTokens();
       if (newToken == null || newToken.isEmpty) {
         await _onTokenExpired();
         return handler.next(err);
       }
       final requestOptions = err.requestOptions;
-      requestOptions.headers['Authorization'] = 'Bearer $newToken';
+      requestOptions.headers[NetworkConstants.authorization] =
+          '${NetworkConstants.bearerPrefix}$newToken';
       final response = await client.fetch<dynamic>(requestOptions);
       return handler.resolve(response);
     } on DioException catch (e) {
@@ -130,25 +157,25 @@ class AuthInterceptor extends QueuedInterceptor {
   }
 
   /// Single-flight refresh: waiters share the same [Completer] future.
-  Future<String?> _refreshAccessToken() async {
-    final inFlight = _refreshCompleter;
-    if (inFlight != null) {
-      return inFlight.future;
-    }
+  // Future<String?> _refreshAccessToken() async {
+  //   final inFlight = _refreshCompleter;
+  //   if (inFlight != null) {
+  //     return inFlight.future;
+  //   }
 
-    final completer = Completer<String?>();
-    _refreshCompleter = completer;
+  //   final completer = Completer<String?>();
+  //   _refreshCompleter = completer;
 
-    try {
-      final token = await _refreshTokens();
-      completer.complete(token);
-      return token;
-    } on Object catch (e, stackTrace) {
-      completer.completeError(e, stackTrace);
-      rethrow;
-    } finally {
-      // Clear the completer to allow new refresh attempts.
-      _refreshCompleter = null;
-    }
-  }
+  //   try {
+  //     final token = await _refreshTokens();
+  //     completer.complete(token);
+  //     return token;
+  //   } on Object catch (e, stackTrace) {
+  //     completer.completeError(e, stackTrace);
+  //     rethrow;
+  //   } finally {
+  //     // Clear the completer to allow new refresh attempts.
+  //     _refreshCompleter = null;
+  //   }
+  // }
 }

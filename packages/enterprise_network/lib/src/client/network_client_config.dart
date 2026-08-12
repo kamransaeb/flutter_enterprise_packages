@@ -1,17 +1,16 @@
+import 'package:enterprise_network/src/constants/network_constants.dart';
+
 /// Configuration for the network client
 class NetworkClientConfig {
-    /// Constructor for the NetworkClientConfig class
-  const NetworkClientConfig ({
+  /// Constructor for the NetworkClientConfig class
+  const NetworkClientConfig({
     required this.baseUrl,
-    this.connectTimeout = const Duration(seconds: 30),
-    this.receiveTimeout = const Duration(seconds: 30),
-    this.sendTimeout = const Duration(seconds: 30),
-    this.defaultHeaders = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
+    this.connectTimeout = NetworkConstants.connectTimeout,
+    this.receiveTimeout = NetworkConstants.receiveTimeout,
+    this.sendTimeout = NetworkConstants.sendTimeout,
+    this.defaultHeaders = NetworkConstants.defaultHeaders,
     this.enableLogging = true,
-    this.validateStatusBelow = 500,
+    this.validateStatusBelow = NetworkConstants.validateStatusBelow,
   });
 
   /// Base URL for the API
