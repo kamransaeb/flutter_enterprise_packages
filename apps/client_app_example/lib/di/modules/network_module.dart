@@ -1,6 +1,8 @@
-import 'package:client_app_example/di/injection.dart';
+import 'package:client_app_example/core/constants/storage_constants.dart';
+import 'package:client_app_example/network/hive_network_cache_store.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
 import 'package:enterprise_network/enterprise_network.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
@@ -44,24 +46,42 @@ abstract class NetworkModule {
   DeviceNetworkInfo deviceNetworkInfo(DeviceInfoPlugin plugin) =>
       DeviceNetworkInfo(plugin: plugin);
 
+  /// App-owned HTTP config (no AppConfig in packages).
+  @lazySingleton
+  NetworkClientConfig get networkClientConfig => const NetworkClientConfig(
+    baseUrl: 'https://jsonplaceholder.typicode.com',
+  );
+
+  /// Provides [NetworkCacheStore] backed by [HiveNetworkCacheStore] for 
+  /// caching network requests.
+  @lazySingleton
+  NetworkCacheStore networkCacheStore(
+    @Named('hive_storage') LocalStorage hiveStorage,
+  ) => HiveNetworkCacheStore(hiveStorage);
+
+  /// Provides [Dio] for making HTTP requests.
+  @lazySingleton
+  Dio dio(DioClient client) => client.dio;
+
   /// Provides [DioClient] for making HTTP requests.
   @lazySingleton
   DioClient dioClient(
     NetworkClientConfig config,
     LoggerService logger,
     DeviceNetworkInfo deviceInfo,
+    @Named('secure_storage') LocalStorage secureStorage,
+    NetworkCacheStore cacheStore, 
   ) {
-    final retry = RetryInterceptor(logger);
-
     final client = DioClient(
       config,
       logger,
       // Interceptors in order:
       // 1. HeaderInterceptor
       // 2. AuthInterceptor
-      // 3. LoggingInterceptor
-      // 4. RetryInterceptor
-      // 5. ErrorInterceptor
+      // 3. CacheInterceptor
+      // 4. LoggingInterceptor
+      // 5. RetryInterceptor
+      // 6. ErrorInterceptor
       interceptors: [
         HeaderInterceptor(
           deviceInfo,
@@ -69,32 +89,31 @@ abstract class NetworkModule {
             // 'App-Version': '...', from package_info in app later
             // 'Build-Number': '1',
             // 'X-Environment': 'dev', // only in debug
-            'Accept-Language': 'en',
+            NetworkConstants.acceptLanguage: 'en',
           },
         ),
         AuthInterceptor(
           logger,
+          () => secureStorage.read<String>(StorageConstants.accessToken),
           () async {
-            return getIt<LocalStorage>(
-              instanceName: 'secure_storage',
-            ).read<String>('access_token');
-          },
-          () async {
-            // Dio call with Options(extra: {'isRefreshCall': true, 'skipAuth':
-            // true})
+            // Dio call with Options(extra: {
+            //   NetworkConstants.isRefreshCallExtraKey: true,
+            //   NetworkConstants.skipAuthExtraKey: true,
+            // })
             // save tokens, return new access token
             return null;
           },
           () async {
-            // clear tokens, navigate to login
-            return null;
+            await secureStorage.delete(StorageConstants.accessToken);
+            await secureStorage.delete(StorageConstants.refreshToken);
           },
         ),
+        CacheInterceptor(logger, cacheStore),
         if (config.enableLogging)
           LoggingInterceptor(
             logger,
           ),
-        retry,
+        RetryInterceptor(logger),
         ErrorInterceptor(logger),
       ],
     );

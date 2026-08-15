@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:client_app_example/bootstrap/initialize_app_services.dart';
 import 'package:client_app_example/di/injection.dart';
 import 'package:client_app_example/errors/error_mapper.dart';
+import 'package:client_app_example/features/posts/domain/usecases/get_post_usecase.dart';
+import 'package:client_app_example/features/posts/presentation/pages/posts_demo_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:enterprise_core/enterprise_core.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
@@ -48,7 +50,8 @@ class ClientAppExample extends StatelessWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      home: const StorageDemoPage(),
+      home: const PostsDemoPage(),
+      //home: const StorageDemoPage(),
     );
   }
 }
@@ -65,6 +68,8 @@ class StorageDemoPage extends StatefulWidget {
 class _StorageDemoPageState extends State<StorageDemoPage> {
   int _counter = 0;
   LocalStorage get _prefs => getIt<LocalStorage>(instanceName: 'shared_prefs');
+  String? _httpStatus;
+  String? _lastTitle;
 
   @override
   void initState() {
@@ -100,14 +105,108 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
     );
   }
 
+  Future<void> _demoGet({bool forceRefresh = false}) async {
+    try {
+      //final sw = Stopwatch()..start();
+
+      // final response = await getIt<DioClient>().get<dynamic>(
+      //   '/posts/1',
+      //   options: Options(
+      //     extra: {
+      //       NetworkConstants.skipAuthExtraKey: true,
+      //       if (forceRefresh) NetworkConstants.forceRefreshExtraKey: true,
+      //     },
+      //   ), // public endpoint
+      // );
+      // final result = await getIt<PostsRepository>().getPost(
+      //   1,
+      //   forceRefresh: forceRefresh,
+      // );
+
+      final result = await getIt<GetPostUseCase>().call(
+        GetPostParams(id: 1, forceRefresh: forceRefresh),
+      );
+
+      // With failures no try/catch is needed, Failures are already Left<Failure>.
+      return result.fold(
+        (failure) {
+          final message = ErrorMapper.toUserMessage(failure);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
+        },
+        (post) {
+          if (!mounted) return;
+          setState(() {
+            _httpStatus = '200';
+            _lastTitle = post.title;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'GET /posts/1 → $_httpStatus - $_lastTitle',
+              ),
+            ),
+          );
+        },
+      );
+
+      // final fromCache =
+      //     response.extra[NetworkConstants.cacheResponseExtraKey] == true;
+      // final isFallback =
+      //     response.extra[NetworkConstants.isFallbackExtraKey] == true;
+
+      // final post = ResponseParser.parseData(
+      //   response,
+      //   (json) => json as Map<String, dynamic>,
+      // );
+
+      // if (!mounted) return;
+      // setState(() {
+      //   _httpStatus = '${response.statusCode}';
+      //   _lastTitle = post['title']?.toString();
+      // });
+
+      // final source = isFallback
+      //     ? 'fallback cache'
+      //     : fromCache && sw.elapsedMilliseconds < 100
+      //     ? 'memory cache'
+      //     : 'network';
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(
+      //       'GET /posts/1 → ${response.statusCode} ($source, ${sw.elapsedMilliseconds}ms)',
+      //     ),
+      //   ),
+      // );
+    } on Object catch (e) {
+      final failure = getIt<ErrorHandler>().handleError(e, reason: 'demo GET');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ErrorMapper.toUserMessage(failure))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-        child: Text(
-          'Prefs counter:$_counter',
-          style: Theme.of(context).textTheme.headlineMedium,
+        child: Column(
+          children: [
+            Text(
+              'Prefs counter:$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Last GET status: ${_httpStatus ?? '—'}'
+              '\nLast title: ${_lastTitle ?? '—'}',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
         ),
       ),
       floatingActionButton: Column(
@@ -116,6 +215,16 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
           FloatingActionButton(
             onPressed: _increment,
             child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            heroTag: 'demoGet',
+            onPressed: _demoGet,
+            child: const Icon(Icons.get_app),
+          ),
+          FloatingActionButton(
+            heroTag: 'demoGetForceRefresh',
+            onPressed: () => _demoGet(forceRefresh: true),
+            child: const Icon(Icons.refresh),
           ),
           FloatingActionButton(
             onPressed: _showErrorMessage,
