@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// App-owned storage keys and Hive box names.
 class StorageConstants {
   StorageConstants._();
@@ -19,6 +21,18 @@ class StorageConstants {
   // Settings / prefs
   // ---------------------------------------------------------------------------
 
+  /// Key for the persisted theme mode.
+  static const String themeMode = 'theme_mode';
+
+  /// Key for the persisted dynamic color.
+  static const String dynamicColor = 'dynamic_color';
+
+  /// Key for the persisted font size scale.
+  static const String fontSizeScale = 'font_size_scale';
+
+  /// Key for the persisted high contrast.
+  static const String highContrast = 'high_contrast';
+
   /// Key for the persisted locale.
   static const String localeKey = 'locale_key';
 
@@ -33,6 +47,9 @@ class StorageConstants {
 
   /// Key for dark mode preference.
   static const String isDarkMode = 'is_dark_mode';
+
+  /// Persisted Material [ThemeMode] name: `system`, `light`, or `dark`.
+  static const String themeMode = 'theme_mode';
 
   /// Key for the selected UI language.
   static const String selectedLanguage = 'selected_language';

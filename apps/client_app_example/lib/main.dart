@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:client_app_example/bootstrap/initialize_app_services.dart';
+import 'package:client_app_example/core/constants/di_constants.dart';
+import 'package:client_app_example/core/constants/storage_constants.dart';
 import 'package:client_app_example/di/injection.dart';
 import 'package:client_app_example/errors/error_mapper.dart';
 import 'package:client_app_example/features/posts/domain/usecases/get_post_usecase.dart';
@@ -67,7 +69,8 @@ class StorageDemoPage extends StatefulWidget {
 
 class _StorageDemoPageState extends State<StorageDemoPage> {
   int _counter = 0;
-  LocalStorage get _prefs => getIt<LocalStorage>(instanceName: 'shared_prefs');
+  LocalStorage get _prefs =>
+      getIt<LocalStorage>(instanceName: DiConstants.sharedPrefs);
   String? _httpStatus;
   String? _lastTitle;
 
@@ -78,7 +81,7 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
   }
 
   Future<void> _load() async {
-    final value = await _prefs.read<int>('demo_counter') ?? 0;
+    final value = await _prefs.read<int>(StorageConstants.demoCounter) ?? 0;
     if (!mounted) return;
     setState(() {
       _counter = value;
@@ -87,10 +90,14 @@ class _StorageDemoPageState extends State<StorageDemoPage> {
 
   Future<void> _increment() async {
     final next = _counter + 1;
-    await _prefs.write('demo_counter', next);
+    await _prefs.write(StorageConstants.demoCounter, next);
     await getIt<LocalStorage>(
-      instanceName: 'hive_storage',
-    ).write('last_counter', next, boxName: 'settings_box');
+      instanceName: DiConstants.hiveStorage,
+    ).write(
+      StorageConstants.lastCounter,
+      next,
+      boxName: StorageConstants.settingsBox,
+    );
     setState(() => _counter = next);
   }
 

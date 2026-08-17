@@ -1,3 +1,5 @@
+import 'package:client_app_example/core/constants/di_constants.dart';
+import 'package:client_app_example/core/constants/storage_constants.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
 import 'package:enterprise_storage/enterprise_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -22,7 +24,7 @@ abstract class StorageModule {
   @singleton
   // @Named: choose between multiple bindings of the same type.
   // you register the same type multiple times with different names.
-  @Named('shared_prefs')
+  @Named(DiConstants.sharedPrefs)
   LocalStorage sharedPrefsStorage(
     SharedPreferences prefs,
     LoggerService logger,
@@ -42,7 +44,7 @@ abstract class StorageModule {
 
 /// Secure storage for local storage
   @singleton
-  @Named('secure_storage')
+  @Named(DiConstants.secureStorage)
   LocalStorage secureStorage(
     FlutterSecureStorage storage,
     LoggerService logger,
@@ -54,10 +56,14 @@ abstract class StorageModule {
 
   /// Hive storage for local storage
   @singleton
-  @Named('hive_storage')
+  @Named(DiConstants.hiveStorage)
   LocalStorage hiveStorage(LoggerService logger) => HiveStorage(
     logger,
-    defaultBoxes: const ['settings_box', 'cache_box', 'user_box'],
+    defaultBoxes: const [
+      StorageConstants.settingsBox,
+      StorageConstants.cacheBox,
+      StorageConstants.userBox,
+    ],
     // registerAdapters: [
     //   UserAdapter(),
     //   SettingsAdapter(),
@@ -66,9 +72,9 @@ abstract class StorageModule {
   );
 
   /// Concrete type for Hive-only APIs (watchBox, writeJson, …).
-  /// Same instance as @Named('hive_storage') after initializer runs.
+  /// Same instance as `@Named(DiConstants.hiveStorage)` after initializer runs.
   @singleton
   HiveStorage hiveStorageConcrete(
-    @Named('hive_storage') LocalStorage storage,
+    @Named(DiConstants.hiveStorage) LocalStorage storage,
   ) => storage as HiveStorage;
 }

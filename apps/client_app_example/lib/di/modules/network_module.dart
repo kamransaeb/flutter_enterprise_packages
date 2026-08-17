@@ -1,3 +1,4 @@
+import 'package:client_app_example/core/constants/di_constants.dart';
 import 'package:client_app_example/core/constants/storage_constants.dart';
 import 'package:client_app_example/network/hive_network_cache_store.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -56,7 +57,7 @@ abstract class NetworkModule {
   /// caching network requests.
   @lazySingleton
   NetworkCacheStore networkCacheStore(
-    @Named('hive_storage') LocalStorage hiveStorage,
+    @Named(DiConstants.hiveStorage) LocalStorage hiveStorage,
   ) => HiveNetworkCacheStore(hiveStorage);
 
   /// Provides [Dio] for making HTTP requests.
@@ -69,7 +70,7 @@ abstract class NetworkModule {
     NetworkClientConfig config,
     LoggerService logger,
     DeviceNetworkInfo deviceInfo,
-    @Named('secure_storage') LocalStorage secureStorage,
+    @Named(DiConstants.secureStorage) LocalStorage secureStorage,
     NetworkCacheStore cacheStore, 
   ) {
     final client = DioClient(

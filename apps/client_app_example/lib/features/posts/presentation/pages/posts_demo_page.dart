@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:client_app_example/di/injection.dart';
 import 'package:client_app_example/errors/error_mapper.dart';
 import 'package:client_app_example/features/posts/domain/entities/post.dart';
@@ -23,9 +25,9 @@ class _PostsDemoPageState extends State<PostsDemoPage> {
   Failure? _failure;
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await _loadPost();
+    unawaited(_loadPost());
   }
 
   Future<void> _loadPost({bool forceRefresh = false}) async {
@@ -93,22 +95,27 @@ class _PostsDemoPageState extends State<PostsDemoPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton(
-            heroTag: 'getPost',
-            onPressed: _loading ? null : _loadPost,
-            child: const Icon(Icons.cloud_download),
+          AppButton(
+            label: 'Load post',
+            icon: Icons.cloud_download,
+            loading: _loading,
+            onPressed: _loadPost,
           ),
-          const SizedBox(height: 12),
-           FloatingActionButton(
-            heroTag: 'getPostFresh',
-            onPressed: _loading ? null : () => _loadPost(forceRefresh: true),
-            child: const Icon(Icons.refresh),
+          const SizedBox(height: 8),
+          AppButton(
+            label: 'Refresh',
+            icon: Icons.refresh,
+            variant: AppButtonVariant.tonal,
+            loading: _loading,
+            onPressed: () => _loadPost(forceRefresh: true),
           ),
-          const SizedBox(height: 12),
-          FloatingActionButton(
-            heroTag: 'getPosts',
-            onPressed: _loading ? null : _loadPosts,
-            child: const Icon(Icons.list),
+          const SizedBox(height: 8),
+          AppButton(
+            label: 'Load posts',
+            icon: Icons.list,
+            variant: AppButtonVariant.outlined,
+            loading: _loading,
+            onPressed: _loadPosts,
           ),
         ],
       ),
@@ -164,7 +171,8 @@ class _PostsDemoPageState extends State<PostsDemoPage> {
   //       children: [
   //         if (_loading) const LinearProgressIndicator(),
   //         Text(
-  //           _post == null ? 'No post loaded' : '${_post!.id} - ${_post!.title}',
+  //           _post == null ? 'No post loaded' : '${_post!.id}
+  //- ${_post!.title}',
   //           style: Theme.of(context).textTheme.titleLarge,
   //         ),
   //         const SizedBox(height: 16),
