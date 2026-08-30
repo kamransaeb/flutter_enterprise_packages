@@ -11,6 +11,7 @@ workspace:
   - packages/enterprise_logger
   - packages/enterprise_network
   - packages/enterprise_storage
+  - packages/enterprise_ui
 
 dev_dependencies:
   melos: ^8.2.2

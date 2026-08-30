@@ -1,7 +1,10 @@
 name: enterprise_ui
-description: "A new Flutter package project."
+description: "Shared UI kit for Flutter enterprise apps."
 version: 0.0.1
-homepage:
+publish_to: none
+# future use this to publish the package
+# homepage: https://github.com/your-org/flutter_enterprise_packages
+resolution: workspace
 
 environment:
   sdk: ^3.12.2
@@ -14,7 +17,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
