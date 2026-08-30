@@ -1,9 +1,10 @@
 name: enterprise_logger
 description: "Shared logging package for Flutter enterprise apps."
-version: 0.0.1
+version: 0.1.0
 homepage:
 # We need to define that this package is a workspace package
-resolution: workspace
+# resolution: workspace
+repository: https://github.com/kamransaeb/flutter-enterprise-packages
 publish_to: none
 
 environment:
