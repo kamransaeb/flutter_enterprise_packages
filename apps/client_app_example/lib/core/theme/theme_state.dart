@@ -36,8 +36,6 @@ enum AppThemeStatus {
 /// Current theme preferences.
 @freezed
 abstract class ThemeState with _$ThemeState {
-  const ThemeState._();
-
   /// Creates a [ThemeState].
   const factory ThemeState({
     @Default(AppThemeStatus.system) AppThemeStatus currentThemeStatus,
@@ -46,12 +44,16 @@ abstract class ThemeState with _$ThemeState {
     @Default(false) bool useHighContrast,
   }) = _StateInitial;
 
+  const ThemeState._();
+
+  /// Whether the current theme is a light theme.
   bool get isLightTheme =>
       currentThemeStatus == AppThemeStatus.light ||
       (currentThemeStatus == AppThemeStatus.system &&
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.light);
 
+  /// Whether the current theme is a dark theme.
   bool get isDarkTheme =>
       currentThemeStatus == AppThemeStatus.dark ||
       (currentThemeStatus == AppThemeStatus.system &&

@@ -1,5 +1,8 @@
 import 'package:client_app_example/core/constants/di_constants.dart';
 import 'package:client_app_example/core/constants/storage_constants.dart';
+import 'package:client_app_example/di/injection.dart';
+import 'package:client_app_example/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:client_app_example/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:client_app_example/network/hive_network_cache_store.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -97,16 +100,20 @@ abstract class NetworkModule {
           logger,
           () => secureStorage.read<String>(StorageConstants.accessToken),
           () async {
-            // Dio call with Options(extra: {
-            //   NetworkConstants.isRefreshCallExtraKey: true,
-            //   NetworkConstants.skipAuthExtraKey: true,
-            // })
-            // save tokens, return new access token
-            return null;
+            final local = getIt<AuthLocalDataSource>();
+            final remote = getIt<AuthRemoteDataSource>();
+            final cached = await local.getCachedTokens();
+            if (cached == null) return null;
+            
+            final refreshed = await remote.refreshToken(
+              refreshToken: cached.refreshToken,
+            );
+            final authTokens = refreshed.toAuthTokensModel();
+            await local.cacheTokens(authTokens);                  
+            return authTokens.accessToken;
           },
           () async {
-            await secureStorage.delete(StorageConstants.accessToken);
-            await secureStorage.delete(StorageConstants.refreshToken);
+            await getIt<AuthLocalDataSource>().clearSession();
           },
         ),
         CacheInterceptor(logger, cacheStore),

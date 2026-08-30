@@ -20,7 +20,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   ThemeBloc(
     @Named(DiConstants.hiveStorage) this._hiveStorage,
     this._logger,
-  ) : super(const ThemeState.initial()) {
+  ) : super(const ThemeState()) {
     on<_EventLoaded>(_onEventLoaded);
     on<_EventChanged>(_onEventChanged);
     on<_EventToggleRequested>(_onEventToggleRequested);
@@ -48,7 +48,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
           currentThemeStatus: await _getSavedThemeStatus(),
           useDynamicColor: await _getSavedDynamicColor(),
           fontSizeScale: await _getSavedFontSizeScale(),
-          highContrast: await _getSavedHighContrast(),
+          useHighContrast: await _getSavedHighContrast(),
         ),
       );
       _logger.i('ThemeBloc: Theme preferences loaded successfully');
@@ -65,9 +65,9 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     _EventChanged event,
     Emitter<ThemeState> emit,
   ) async {
-    _logger.i('ThemeBloc: Changing theme to ${event.themeMode}');
+    _logger.i('ThemeBloc: Changing theme to ${event.themeStatus}');
     try {
-      await _saveThemeStatus(event.themeMode);
+      await _saveThemeStatus(event.themeStatus);
       emit(state.copyWith(currentThemeStatus: event.themeStatus));
     } on Object catch (e, stackTrace) {
       _logger.e(
@@ -129,7 +129,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   ) async {
     try {
       await _write(StorageConstants.highContrast, event.enabled);
-      emit(state.copyWith(highContrast: event.enabled));
+      emit(state.copyWith(useHighContrast: event.enabled));
     } on Object catch (error, stackTrace) {
       _logger.e(
         'ThemeBloc: Error saving high contrast',
@@ -148,7 +148,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       await _hiveStorage.delete(StorageConstants.dynamicColor, boxName: _box);
       await _hiveStorage.delete(StorageConstants.fontSizeScale, boxName: _box);
       await _hiveStorage.delete(StorageConstants.highContrast, boxName: _box);
-      emit(const ThemeState.initial());
+      emit(const ThemeState());
     } on Object catch (error, stackTrace) {
       _logger.e(
         'ThemeBloc: Error resetting to default',

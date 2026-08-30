@@ -23,7 +23,25 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
     as _i161;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
+import '../core/navigation/app_router.dart' as _i159;
+import '../core/theme/theme_bloc.dart' as _i905;
 import '../errors/app_error_reporter.dart' as _i589;
+import '../features/auth/data/api/auth_api_client.dart' as _i1005;
+import '../features/auth/data/datasources/auth_local_data_source.dart' as _i109;
+import '../features/auth/data/datasources/auth_local_data_source_impl.dart'
+    as _i889;
+import '../features/auth/data/datasources/auth_remote_data_source.dart'
+    as _i719;
+import '../features/auth/data/datasources/auth_remote_data_source_impl.dart'
+    as _i902;
+import '../features/auth/data/repositories/auth_repository_impl.dart' as _i570;
+import '../features/auth/domain/repositories/auth_repository.dart' as _i869;
+import '../features/auth/domain/usecases/check_auth_status_usecase.dart'
+    as _i403;
+import '../features/auth/domain/usecases/login_usecase.dart' as _i406;
+import '../features/auth/domain/usecases/logout_usecase.dart' as _i11;
+import '../features/auth/presentation/bloc/auth/auth_bloc.dart' as _i476;
+import '../features/auth/presentation/bloc/login/login_bloc.dart' as _i392;
 import '../features/posts/data/api/posts_api_client.dart' as _i347;
 import '../features/posts/data/datasources/posts_remote_data_source.dart'
     as _i414;
@@ -34,6 +52,7 @@ import '../features/posts/data/repositories/posts_repository_impl.dart'
 import '../features/posts/domain/repositories/posts_repository.dart' as _i57;
 import '../features/posts/domain/usecases/get_post_usecase.dart' as _i226;
 import '../features/posts/domain/usecases/get_posts_usecase.dart' as _i717;
+import '../features/posts/presentation/bloc/posts_bloc.dart' as _i71;
 import 'modules/core_module.dart' as _i134;
 import 'modules/logger_module.dart' as _i205;
 import 'modules/network_module.dart' as _i851;
@@ -54,6 +73,8 @@ extension GetItInjectableX on _i174.GetIt {
       () => storageModule.sharedPrefrences,
       preResolve: true,
     );
+    gh.factory<_i392.LoginBloc>(() => _i392.LoginBloc());
+    gh.singleton<_i159.AppRouter>(() => _i159.AppRouter());
     gh.singleton<_i194.LoggerConfig>(() => loggerModule.loggerConfig());
     gh.singleton<_i558.FlutterSecureStorage>(
       () => storageModule.flutterSecureStorage,
@@ -109,6 +130,12 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       instanceName: 'secure_storage',
     );
+    gh.lazySingleton<_i905.ThemeBloc>(
+      () => _i905.ThemeBloc(
+        gh<_i42.LocalStorage>(instanceName: 'hive_storage'),
+        gh<_i194.LoggerService>(),
+      ),
+    );
     gh.lazySingleton<_i496.DioClient>(
       () => networkModule.dioClient(
         gh<_i496.NetworkClientConfig>(),
@@ -124,6 +151,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i496.JsonTransformer>(
       () => networkModule.jsonTransformer(gh<_i194.LoggerService>()),
     );
+    gh.lazySingleton<_i109.AuthLocalDataSource>(
+      () => _i889.AuthLocalDataSourceImpl(
+        gh<_i42.LocalStorage>(instanceName: 'secure_storage'),
+      ),
+    );
     gh.singleton<_i89.ErrorHandler>(
       () => coreModule.errorHandler(
         gh<_i194.LoggerService>(),
@@ -131,11 +163,41 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.lazySingleton<_i361.Dio>(() => networkModule.dio(gh<_i496.DioClient>()));
+    gh.lazySingleton<_i1005.AuthApiClient>(
+      () => _i1005.AuthApiClient(gh<_i496.DioClient>()),
+    );
     gh.lazySingleton<_i347.PostsApiClient>(
       () => _i347.PostsApiClient(gh<_i496.DioClient>()),
     );
+    gh.lazySingleton<_i719.AuthRemoteDataSource>(
+      () => _i902.AuthRemoteDataSourceImpl(gh<_i1005.AuthApiClient>()),
+    );
+    gh.lazySingleton<_i869.AuthRepository>(
+      () => _i570.AuthRepositoryImpl(
+        gh<_i719.AuthRemoteDataSource>(),
+        gh<_i109.AuthLocalDataSource>(),
+        gh<_i89.ErrorHandler>(),
+      ),
+    );
+    gh.factory<_i406.LoginUseCase>(
+      () => _i406.LoginUseCase(gh<_i869.AuthRepository>()),
+    );
     gh.lazySingleton<_i414.PostsRemoteDataSource>(
       () => _i510.PostsRemoteDataSourceImpl(gh<_i347.PostsApiClient>()),
+    );
+    gh.factory<_i403.CheckAuthStatusUseCase>(
+      () => _i403.CheckAuthStatusUseCase(gh<_i869.AuthRepository>()),
+    );
+    gh.factory<_i11.LogoutUseCase>(
+      () => _i11.LogoutUseCase(gh<_i869.AuthRepository>()),
+    );
+    gh.lazySingleton<_i476.AuthBloc>(
+      () => _i476.AuthBloc(
+        gh<_i406.LoginUseCase>(),
+        gh<_i11.LogoutUseCase>(),
+        gh<_i403.CheckAuthStatusUseCase>(),
+        gh<_i194.LoggerService>(),
+      ),
     );
     gh.lazySingleton<_i57.PostsRepository>(
       () => _i799.PostsRepositoryImpl(
@@ -148,6 +210,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i717.GetPostsUseCase>(
       () => _i717.GetPostsUseCase(gh<_i57.PostsRepository>()),
+    );
+    gh.factory<_i71.PostsBloc>(
+      () => _i71.PostsBloc(
+        gh<_i226.GetPostUseCase>(),
+        gh<_i717.GetPostsUseCase>(),
+      ),
     );
     return this;
   }

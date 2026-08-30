@@ -18,9 +18,8 @@ abstract class ThemeEvent with _$ThemeEvent {
     required AppThemeStatus themeStatus,
   }) = _EventChanged;
 
-  /// Emitted when the theme is toggled.
-  const factory ThemeEvent.toggleRequested(ThemeMode mode) =
-   _EventToggleRequested;
+  /// Cycle system → light → dark → system.
+  const factory ThemeEvent.toggleRequested() = _EventToggleRequested;
 
   /// Emitted when the dynamic color is toggled.
   const factory ThemeEvent.dynamicColorToggled({
@@ -37,5 +36,6 @@ abstract class ThemeEvent with _$ThemeEvent {
     required bool enabled,
   }) = _EventHighContrastToggled;
 
+  /// Emitted when the theme is reset to default.
   const factory ThemeEvent.resetToDefault() = _EventResetToDefault;
 }

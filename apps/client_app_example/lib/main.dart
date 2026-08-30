@@ -1,16 +1,21 @@
 import 'dart:async';
 
 import 'package:client_app_example/bootstrap/initialize_app_services.dart';
-import 'package:client_app_example/core/constants/di_constants.dart';
-import 'package:client_app_example/core/constants/storage_constants.dart';
+import 'package:client_app_example/core/navigation/app_router.dart';
+// import 'package:client_app_example/core/constants/di_constants.dart';
+// import 'package:client_app_example/core/constants/storage_constants.dart';
+import 'package:client_app_example/core/theme/theme_bloc.dart';
 import 'package:client_app_example/di/injection.dart';
-import 'package:client_app_example/errors/error_mapper.dart';
-import 'package:client_app_example/features/posts/domain/usecases/get_post_usecase.dart';
+import 'package:client_app_example/features/auth/presentation/bloc/auth/auth_bloc.dart';
+// import 'package:client_app_example/errors/error_mapper.dart';
+// import 'package:client_app_example/features/posts/domain/usecases/get_post_usecase.dart';
 import 'package:client_app_example/features/posts/presentation/pages/posts_demo_page.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:enterprise_core/enterprise_core.dart';
-import 'package:enterprise_storage/enterprise_storage.dart';
+// import 'package:enterprise_core/enterprise_core.dart';
+// import 'package:enterprise_storage/enterprise_storage.dart';
+import 'package:enterprise_ui/enterprise_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   // ensure the binding is initialized before anything else.
@@ -31,7 +36,16 @@ Future<void> main() async {
       supportedLocales: const [Locale('en'), Locale('tr')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      child: const ClientAppExample(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: getIt<ThemeBloc>()),
+          BlocProvider.value(
+            value: getIt<AuthBloc>()
+              ..add(const AuthEvent.checkStatusRequested()),
+          ),
+        ],
+        child: const ClientAppExample(),
+      ),
     ),
   );
 }
@@ -43,202 +57,218 @@ class ClientAppExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Client App Example',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      home: const PostsDemoPage(),
-      //home: const StorageDemoPage(),
+    final appRouter = getIt<AppRouter>();
+
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            return MaterialApp.router(
+              title: 'Client App Example',
+              theme: AppTheme.light(seed: Colors.teal),
+              darkTheme: AppTheme.dark(seed: Colors.teal),
+              themeMode: themeState.currentThemeStatus.themeMode,
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              routerConfig: appRouter.config(),
+              builder: (context, child) {
+                if (authState.isChecking) {
+                  return const Scaffold(
+                    body: Center(child: AppLoadingIndicator()),
+                  );
+                }
+                return child ?? const SizedBox.shrink();
+              },              
+            );
+          },
+        );
+      },
     );
   }
 }
 
-/// A demo page that shows how to use the storage.
-class StorageDemoPage extends StatefulWidget {
-  /// Creates a [StorageDemoPage] widget.
-  const StorageDemoPage({super.key});
+// /// A demo page that shows how to use the storage.
+// class StorageDemoPage extends StatefulWidget {
+//   /// Creates a [StorageDemoPage] widget.
+//   const StorageDemoPage({super.key});
 
-  @override
-  State<StorageDemoPage> createState() => _StorageDemoPageState();
-}
+//   @override
+//   State<StorageDemoPage> createState() => _StorageDemoPageState();
+// }
 
-class _StorageDemoPageState extends State<StorageDemoPage> {
-  int _counter = 0;
-  LocalStorage get _prefs =>
-      getIt<LocalStorage>(instanceName: DiConstants.sharedPrefs);
-  String? _httpStatus;
-  String? _lastTitle;
+// class _StorageDemoPageState extends State<StorageDemoPage> {
+//   int _counter = 0;
+//   LocalStorage get _prefs =>
+//       getIt<LocalStorage>(instanceName: DiConstants.sharedPrefs);
+//   String? _httpStatus;
+//   String? _lastTitle;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_load());
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     unawaited(_load());
+//   }
 
-  Future<void> _load() async {
-    final value = await _prefs.read<int>(StorageConstants.demoCounter) ?? 0;
-    if (!mounted) return;
-    setState(() {
-      _counter = value;
-    });
-  }
+//   Future<void> _load() async {
+//     final value = await _prefs.read<int>(StorageConstants.demoCounter) ?? 0;
+//     if (!mounted) return;
+//     setState(() {
+//       _counter = value;
+//     });
+//   }
 
-  Future<void> _increment() async {
-    final next = _counter + 1;
-    await _prefs.write(StorageConstants.demoCounter, next);
-    await getIt<LocalStorage>(
-      instanceName: DiConstants.hiveStorage,
-    ).write(
-      StorageConstants.lastCounter,
-      next,
-      boxName: StorageConstants.settingsBox,
-    );
-    setState(() => _counter = next);
-  }
+//   Future<void> _increment() async {
+//     final next = _counter + 1;
+//     await _prefs.write(StorageConstants.demoCounter, next);
+//     await getIt<LocalStorage>(
+//       instanceName: DiConstants.hiveStorage,
+//     ).write(
+//       StorageConstants.lastCounter,
+//       next,
+//       boxName: StorageConstants.settingsBox,
+//     );
+//     setState(() => _counter = next);
+//   }
 
-  void _showErrorMessage() {
-    final failure = getIt<ErrorHandler>().handleError(
-      Exception('demo boom'),
-      reason: 'sorage demo',
-    );
-    final message = ErrorMapper.toUserMessage(failure);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
+//   void _showErrorMessage() {
+//     final failure = getIt<ErrorHandler>().handleError(
+//       Exception('demo boom'),
+//       reason: 'sorage demo',
+//     );
+//     final message = ErrorMapper.toUserMessage(failure);
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text(message)),
+//     );
+//   }
 
-  Future<void> _demoGet({bool forceRefresh = false}) async {
-    try {
-      //final sw = Stopwatch()..start();
+//   Future<void> _demoGet({bool forceRefresh = false}) async {
+//     try {
+//       //final sw = Stopwatch()..start();
 
-      // final response = await getIt<DioClient>().get<dynamic>(
-      //   '/posts/1',
-      //   options: Options(
-      //     extra: {
-      //       NetworkConstants.skipAuthExtraKey: true,
-      //       if (forceRefresh) NetworkConstants.forceRefreshExtraKey: true,
-      //     },
-      //   ), // public endpoint
-      // );
-      // final result = await getIt<PostsRepository>().getPost(
-      //   1,
-      //   forceRefresh: forceRefresh,
-      // );
+//       // final response = await getIt<DioClient>().get<dynamic>(
+//       //   '/posts/1',
+//       //   options: Options(
+//       //     extra: {
+//       //       NetworkConstants.skipAuthExtraKey: true,
+//       //       if (forceRefresh) NetworkConstants.forceRefreshExtraKey: true,
+//       //     },
+//       //   ), // public endpoint
+//       // );
+//       // final result = await getIt<PostsRepository>().getPost(
+//       //   1,
+//       //   forceRefresh: forceRefresh,
+//       // );
 
-      final result = await getIt<GetPostUseCase>().call(
-        GetPostParams(id: 1, forceRefresh: forceRefresh),
-      );
+//       final result = await getIt<GetPostUseCase>().call(
+//         GetPostParams(id: 1, forceRefresh: forceRefresh),
+//       );
 
-      // With failures no try/catch is needed, Failures are already Left<Failure>.
-      return result.fold(
-        (failure) {
-          final message = ErrorMapper.toUserMessage(failure);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
-        },
-        (post) {
-          if (!mounted) return;
-          setState(() {
-            _httpStatus = '200';
-            _lastTitle = post.title;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'GET /posts/1 → $_httpStatus - $_lastTitle',
-              ),
-            ),
-          );
-        },
-      );
+//       // With failures no try/catch is needed, Failures are already Left<Failure>.
+//       return result.fold(
+//         (failure) {
+//           final message = ErrorMapper.toUserMessage(failure);
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(content: Text(message)),
+//           );
+//         },
+//         (post) {
+//           if (!mounted) return;
+//           setState(() {
+//             _httpStatus = '200';
+//             _lastTitle = post.title;
+//           });
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(
+//               content: Text(
+//                 'GET /posts/1 → $_httpStatus - $_lastTitle',
+//               ),
+//             ),
+//           );
+//         },
+//       );
 
-      // final fromCache =
-      //     response.extra[NetworkConstants.cacheResponseExtraKey] == true;
-      // final isFallback =
-      //     response.extra[NetworkConstants.isFallbackExtraKey] == true;
+//       // final fromCache =
+//       //     response.extra[NetworkConstants.cacheResponseExtraKey] == true;
+//       // final isFallback =
+//       //     response.extra[NetworkConstants.isFallbackExtraKey] == true;
 
-      // final post = ResponseParser.parseData(
-      //   response,
-      //   (json) => json as Map<String, dynamic>,
-      // );
+//       // final post = ResponseParser.parseData(
+//       //   response,
+//       //   (json) => json as Map<String, dynamic>,
+//       // );
 
-      // if (!mounted) return;
-      // setState(() {
-      //   _httpStatus = '${response.statusCode}';
-      //   _lastTitle = post['title']?.toString();
-      // });
+//       // if (!mounted) return;
+//       // setState(() {
+//       //   _httpStatus = '${response.statusCode}';
+//       //   _lastTitle = post['title']?.toString();
+//       // });
 
-      // final source = isFallback
-      //     ? 'fallback cache'
-      //     : fromCache && sw.elapsedMilliseconds < 100
-      //     ? 'memory cache'
-      //     : 'network';
+//       // final source = isFallback
+//       //     ? 'fallback cache'
+//       //     : fromCache && sw.elapsedMilliseconds < 100
+//       //     ? 'memory cache'
+//       //     : 'network';
 
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(
-      //     content: Text(
-      //       'GET /posts/1 → ${response.statusCode} ($source, ${sw.elapsedMilliseconds}ms)',
-      //     ),
-      //   ),
-      // );
-    } on Object catch (e) {
-      final failure = getIt<ErrorHandler>().handleError(e, reason: 'demo GET');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ErrorMapper.toUserMessage(failure))),
-      );
-    }
-  }
+//       // ScaffoldMessenger.of(context).showSnackBar(
+//       //   SnackBar(
+//       //     content: Text(
+//       //       'GET /posts/1 → ${response.statusCode} ($source, ${sw.elapsedMilliseconds}ms)',
+//       //     ),
+//       //   ),
+//       // );
+//     } on Object catch (e) {
+//       final failure = getIt<ErrorHandler>().handleError(e, reason: 'demo GET');
+//       if (!mounted) return;
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text(ErrorMapper.toUserMessage(failure))),
+//       );
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          children: [
-            Text(
-              'Prefs counter:$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Last GET status: ${_httpStatus ?? '—'}'
-              '\nLast title: ${_lastTitle ?? '—'}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: _increment,
-            child: const Icon(Icons.add),
-          ),
-          FloatingActionButton(
-            heroTag: 'demoGet',
-            onPressed: _demoGet,
-            child: const Icon(Icons.get_app),
-          ),
-          FloatingActionButton(
-            heroTag: 'demoGetForceRefresh',
-            onPressed: () => _demoGet(forceRefresh: true),
-            child: const Icon(Icons.refresh),
-          ),
-          FloatingActionButton(
-            onPressed: _showErrorMessage,
-            child: const Icon(Icons.bug_report),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(),
+//       body: Center(
+//         child: Column(
+//           children: [
+//             Text(
+//               'Prefs counter:$_counter',
+//               style: Theme.of(context).textTheme.headlineMedium,
+//             ),
+//             const SizedBox(height: 12),
+//             Text(
+//               'Last GET status: ${_httpStatus ?? '—'}'
+//               '\nLast title: ${_lastTitle ?? '—'}',
+//               style: Theme.of(context).textTheme.bodyLarge,
+//             ),
+//           ],
+//         ),
+//       ),
+//       floatingActionButton: Column(
+//         mainAxisAlignment: MainAxisAlignment.end,
+//         children: [
+//           FloatingActionButton(
+//             onPressed: _increment,
+//             child: const Icon(Icons.add),
+//           ),
+//           FloatingActionButton(
+//             heroTag: 'demoGet',
+//             onPressed: _demoGet,
+//             child: const Icon(Icons.get_app),
+//           ),
+//           FloatingActionButton(
+//             heroTag: 'demoGetForceRefresh',
+//             onPressed: () => _demoGet(forceRefresh: true),
+//             child: const Icon(Icons.refresh),
+//           ),
+//           FloatingActionButton(
+//             onPressed: _showErrorMessage,
+//             child: const Icon(Icons.bug_report),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

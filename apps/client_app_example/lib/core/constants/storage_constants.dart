@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// App-owned storage keys and Hive box names.
 class StorageConstants {
   StorageConstants._();
@@ -47,10 +45,7 @@ class StorageConstants {
 
   /// Key for dark mode preference.
   static const String isDarkMode = 'is_dark_mode';
-
-  /// Persisted Material [ThemeMode] name: `system`, `light`, or `dark`.
-  static const String themeMode = 'theme_mode';
-
+  
   /// Key for the selected UI language.
   static const String selectedLanguage = 'selected_language';
 
