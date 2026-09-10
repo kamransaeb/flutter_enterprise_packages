@@ -18,15 +18,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     this._getPost,
     this._getPosts,
   ) : super(const PostsState.initial()) {
-    on<_LoadPost>(_onLoadPost);
-    on<_LoadPosts>(_onLoadPosts);
+    on<_EventLoadPost>(_onLoadPost);
+    on<_EventLoadPosts>(_onLoadPosts);
   }
 
   final GetPostUseCase _getPost;
   final GetPostsUseCase _getPosts;
 
   Future<void> _onLoadPost(
-    _LoadPost event,
+    _EventLoadPost event,
     Emitter<PostsState> emit,
   ) async {
     emit(const PostsState.loading());
@@ -42,7 +42,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   }
 
   Future<void> _onLoadPosts(
-    _LoadPosts event,
+    _EventLoadPosts event,
     Emitter<PostsState> emit,
   ) async {
     emit(const PostsState.loading());

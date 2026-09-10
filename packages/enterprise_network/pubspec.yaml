@@ -17,9 +17,15 @@ dependencies:
   device_info_plus: ^13.2.0  
   dio: ^5.11.0
   enterprise_core:
-    path: ../enterprise_core
+    git:
+      url: https://github.com/kamransaeb/flutter_enterprise_packages.git
+      path: packages/enterprise_core
+      ref: v0.1.1
   enterprise_logger:
-    path: ../enterprise_logger  
+    git:
+      url: https://github.com/kamransaeb/flutter_enterprise_packages.git
+      path: packages/enterprise_logger
+      ref: v0.1.1
   flutter:
     sdk: flutter    
   internet_connection_checker_plus: ^3.1.1
