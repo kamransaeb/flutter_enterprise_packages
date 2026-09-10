@@ -79,7 +79,7 @@ class ClientAppExample extends StatelessWidget {
                   );
                 }
                 return child ?? const SizedBox.shrink();
-              },              
+              },
             );
           },
         );

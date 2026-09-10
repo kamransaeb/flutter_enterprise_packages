@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:client_app_example/core/navigation/route_guards.dart';
 import 'package:client_app_example/features/auth/presentation/pages/login_page.dart';
 import 'package:client_app_example/features/posts/presentation/pages/posts_demo_page.dart';
+import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
 part 'app_router.gr.dart';
