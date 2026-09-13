@@ -1,18 +1,24 @@
 import 'package:formz/formz.dart';
 
+/// Validation error for [UserPasswordInput].
 enum UserPasswordValidationError {
+  /// The password is invalid.
   invalid,
 }
 
-class UserPasswordInput extends FormzInput<String, UserPasswordValidationError> {
-
+/// A user password input.
+class UserPasswordInput
+    extends FormzInput<String, UserPasswordValidationError> {
+  /// Creates a [UserPasswordInput] in a pure state.
   const UserPasswordInput.pure() : super.pure('');
 
+  /// Creates a [UserPasswordInput] in a dirty state.
   const UserPasswordInput.dirty([super.value = '']) : super.dirty();
   //const PasswordForm.dirty([String value = '']) : super.dirty(value);
 
-  static final _passwordRegExp =
-  RegExp(r'^.{6,}$',);
+  static final _passwordRegExp = RegExp(
+    r'^.{6,}$',
+  );
 
   @override
   UserPasswordValidationError? validator(String? value) {
@@ -20,5 +26,4 @@ class UserPasswordInput extends FormzInput<String, UserPasswordValidationError> 
         ? null
         : UserPasswordValidationError.invalid;
   }
-
 }
