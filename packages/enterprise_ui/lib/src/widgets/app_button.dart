@@ -60,7 +60,7 @@ class AppButton extends StatelessWidget {
   /// [AppButtonVariant.roundIcon].
   final String label;
 
-  /// Tap handler. Null or [loading] disables the button.
+  /// Tap handler
   final VoidCallback? onPressed;
 
   /// Visual variant.

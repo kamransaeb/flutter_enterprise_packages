@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 enum AppLoadingSize {
   /// Small loading indicator.
   small,
+
   /// Medium loading indicator.
   medium,
+
   /// Large loading indicator.
   large,
 }
@@ -39,7 +41,11 @@ class AppLoadingIndicator extends StatelessWidget {
         : SizedBox(
             width: _dimension,
             height: _dimension,
-            child: CircularProgressIndicator(strokeWidth: _stoke, color: color),
+            child: CircularProgressIndicator(
+              strokeWidth: _stoke,
+              color: color,
+              strokeCap: StrokeCap.round,
+            ),
           );
 
     if (message == null) return indicator;
