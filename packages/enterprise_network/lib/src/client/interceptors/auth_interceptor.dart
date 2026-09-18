@@ -21,7 +21,7 @@ typedef TokenExpiredHandler = Future<void> Function();
 /// Storage / refresh HTTP stay in the app via callbacks — no secure storage here.
 
 // With a normal Interceptor, Dio can run several requests in parallel.
-// With QueuedInterceptor, Dio queues the requests and rund onRequest, 
+// With QueuedInterceptor, Dio queues the requests and rund onRequest,
 // onResponse, onError one at a time.
 // *** Why that matters for auth
 // Imagine 3 API calls all get 401 at once:
@@ -48,6 +48,8 @@ class AuthInterceptor extends QueuedInterceptor {
     this._onTokenExpired, {
     this.skipAuthExtraKey = NetworkConstants.skipAuthExtraKey,
     this.isRefreshCallExtraKey = NetworkConstants.isRefreshCallExtraKey,
+    this.authorizationHeaderKey = NetworkConstants.authorization,
+    this.authorizationHeaderValuePrefix = NetworkConstants.bearerPrefix,
   });
 
   /// The logger to be used.
@@ -68,6 +70,12 @@ class AuthInterceptor extends QueuedInterceptor {
   /// The key to use for the is refresh call in the request options.
   final String isRefreshCallExtraKey;
 
+  /// The authorization header to be used.
+  final String authorizationHeaderKey;
+
+  /// The authorization header value prefix to be used.
+  final String authorizationHeaderValuePrefix;
+
   /// The Dio instance to be used.
   /// Set by the client app.
   Dio? dio;
@@ -82,7 +90,7 @@ class AuthInterceptor extends QueuedInterceptor {
   // 4. Complete with error: c.completeError(error);
 
   /// In-flight refresh shared by concurrent 401 handlers.
-  /// 
+  ///
   // Completer<String?>? _refreshCompleter;
 
   @override
@@ -98,8 +106,8 @@ class AuthInterceptor extends QueuedInterceptor {
     try {
       final accessToken = await _getAccessToken();
       if (accessToken != null && accessToken.isNotEmpty) {
-        options.headers[NetworkConstants.authorization] =
-            '${NetworkConstants.bearerPrefix}$accessToken';
+        options.headers[authorizationHeaderKey] =
+            '$authorizationHeaderValuePrefix$accessToken';
       }
       handler.next(options);
     } on Object catch (e, stackTrace) {
@@ -142,8 +150,8 @@ class AuthInterceptor extends QueuedInterceptor {
         return handler.next(err);
       }
       final requestOptions = err.requestOptions;
-      requestOptions.headers[NetworkConstants.authorization] =
-          '${NetworkConstants.bearerPrefix}$newToken';
+      requestOptions.headers[authorizationHeaderKey] =
+          '$authorizationHeaderValuePrefix$newToken';
       final response = await client.fetch<dynamic>(requestOptions);
       return handler.resolve(response);
     } on DioException catch (e) {
