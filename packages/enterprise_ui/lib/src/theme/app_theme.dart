@@ -30,8 +30,6 @@ class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seed,
       brightness: brightness,
-      // Preserves seed color matching
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
