@@ -1,6 +1,6 @@
 name: enterprise_ui
 description: "Shared UI kit for Flutter enterprise apps."
-version: 0.1.8
+version: 0.1.9
 publish_to: none
 # future use this to publish the package
 # homepage: https://github.com/your-org/flutter_enterprise_packages
