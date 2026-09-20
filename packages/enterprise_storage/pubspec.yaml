@@ -1,6 +1,6 @@
 name: enterprise_storage
 description: "Shared storage package for Flutter enterprise apps."
-version: 0.1.0
+version: 0.1.8
 homepage:
 # We need to define that this package is a workspace package
 # resolution: workspace
@@ -16,12 +16,12 @@ dependencies:
     git:
       url: https://github.com/kamransaeb/flutter_enterprise_packages.git
       path: packages/enterprise_core
-      ref: v0.1.1
+      ref: v0.1.8
   enterprise_logger:
     git:
       url: https://github.com/kamransaeb/flutter_enterprise_packages.git
       path: packages/enterprise_logger
-      ref: v0.1.1
+      ref: v0.1.8
   flutter:
     sdk: flutter
   flutter_secure_storage: ^10.0.0
