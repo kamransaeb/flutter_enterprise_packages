@@ -20,11 +20,13 @@ typedef ErrorReporter =
 /// Package-safe: no AppConfig, DI, Firebase, or Sentry.
 class ErrorHandler {
   /// Creates a new [ErrorHandler] instance.
+  ///
+  /// [loggerService] is public so subclasses can use `super.loggerService`.
   const ErrorHandler(
-    this._loggerService,{
+    LoggerService loggerService, {
     this.enableLogging = true,
     this.errorReporter,
-  });
+  }) : _loggerService = loggerService;
 
   final LoggerService _loggerService;
 
@@ -41,38 +43,49 @@ class ErrorHandler {
     String reason = 'error_handling',
     bool report = true,
   }) {
-    _logError(error, stackTrace);
+    final normalized = _normalizeError(error);
+    _logError(normalized, stackTrace);
     if (report) {
       _report(
-        error,
+        normalized,
         stackTrace: stackTrace,
         reason: reason,
       );
     }
 
-    if (error is AppException) {
-      return _handleAppException(error);
+    if (normalized is AppException) {
+      return _handleAppException(normalized);
     }
-    if (error is DioException) {
-      return _handleDioException(error);
+    if (normalized is DioException) {
+      return _handleDioException(normalized);
     }
-    if (error is FormatException) {
+    if (normalized is FormatException) {
       return ValidationFailure(
         message: 'Invalid data format received',
         code: 'FORMAT_ERROR',
-        details: {'error': error.toString()},
+        details: {'error': normalized.toString()},
       );
     }
-    if (error is Exception) {
+    if (normalized is Exception) {
       return ServerFailure(
-        message: error.toString(),
+        message: normalized.toString(),
         code: 'EXCEPTION',
         retryable: false,
       );
     }
     return UnknownFailure(
-      details: {'error': error.toString()},
+      details: {'error': normalized.toString()},
     );
+  }
+
+  /// Prefers a nested [AppException] on [DioException.error] (e.g. from
+  /// ErrorInterceptor) so HTTP `responseData` / backend error codes are kept.
+  Object _normalizeError(Object error) {
+    if (error is DioException) {
+      final nested = error.error;
+      if (nested is AppException) return nested;
+    }
+    return error;
   }
 
   /// Manually capture an error
@@ -235,10 +248,11 @@ class ErrorHandler {
         return HttpStatusFailure(
           message: exception.message,
           statusCode: ex.statusCode,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final ResponseParsingException ex:
@@ -257,95 +271,104 @@ class ErrorHandler {
       case final BadRequestException ex:
         return BadRequestFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           validationErrors: ex.validationErrors,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final UnauthorizedRequestException ex:
         return UnauthorizedRequestFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           validationErrors: ex.validationErrors,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final ForbiddenException ex:
         return ForbiddenFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           requiredPermission: ex.requiredPermission,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final ResourceNotFoundException ex:
         return ResourceNotFoundFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           resourceType: ex.resourceType,
           resourceId: ex.resourceId,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final ConflictException ex:
         return ConflictFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           conflictingField: ex.conflictingField,
           conflictingValue: ex.conflictingValue,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final UnprocessableEntityException ex:
         return UnprocessableEntityFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           validationErrors: ex.validationErrors,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final TooManyRequestsException ex:
         return TooManyRequestsFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           limit: ex.limit,
           remaining: ex.remaining,
           reset: ex.reset,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final InternalServerErrorException ex:
         return InternalServerErrorFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           errorId: ex.errorId,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       case final ServiceUnavailableException ex:
         return ServiceUnavailableFailure(
           message: exception.message,
+          code: _extractErrorCode(ex.responseData) ?? exception.code,
           retryAfterSeconds: ex.retryAfterSeconds,
           endpoint: ex.endpoint,
           method: ex.method,
           responseData: ex.responseData,
-          details: exception.details,
+          details: exception.details ?? _responseDetails(ex.responseData, null),
         );
 
       // ============================================================
@@ -764,83 +787,173 @@ class ErrorHandler {
     String endpoint,
     String method,
   ) {
+    // RFC 7807 may include `status` in the body; prefer the HTTP status.
+    final resolvedStatus = statusCode ??
+        (data is Map && data['status'] is int ? data['status'] as int : null);
     final message = _extractErrorMessage(data);
+    final errorCode = _extractErrorCode(data);
     final validationErrors = _extractValidationErrors(data);
+    final details = _responseDetails(data, validationErrors);
 
-    switch (statusCode) {
+    switch (resolvedStatus) {
       case 400:
-        return ValidationFailure(
+        return BadRequestFailure(
           message: message ?? 'Invalid request',
-          code: 'BAD_REQUEST',
-          details: validationErrors,
+          code: errorCode ?? 'BAD_REQUEST',
+          validationErrors: validationErrors,
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 401:
         return UnauthorizedRequestFailure(
           message: message ?? 'Unauthorized request',
+          code: errorCode ?? 'UNAUTHORIZED_REQUEST',
           validationErrors: validationErrors,
-          details: validationErrors,
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 403:
-        return PermissionFailure(
+        return ForbiddenFailure(
           message: message ?? 'Access forbidden',
-          permission: 'resource_access',
-          details: validationErrors,
+          code: errorCode ?? 'FORBIDDEN',
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 404:
-        return NotFoundFailure(
-          resourceType: 'Resource',
+        return ResourceNotFoundFailure(
           message: message ?? 'Resource not found',
-          details: validationErrors,
+          code: errorCode ?? 'RESOURCE_NOT_FOUND',
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 409:
-        return AlreadyExistsFailure(
-          resourceType: 'Resource',
+        return ConflictFailure(
           message: message ?? 'Conflict with current state',
-          details: validationErrors,
+          code: errorCode ?? 'CONFLICT',
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 422:
-        return FormValidationFailure(
+        return UnprocessableEntityFailure(
           message: message ?? 'Validation failed',
-          errors: validationErrors ?? {},
-          details: validationErrors,
+          code: errorCode ?? 'UNPROCESSABLE_ENTITY',
+          validationErrors: validationErrors,
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
         );
       case 429:
         return RateLimitExceededFailure(
           message: message ?? 'Too many requests',
+          code: errorCode ?? 'RATE_LIMIT_EXCEEDED',
           retryAfterSeconds: _extractRetryAfter(data) ?? 60,
           endpoint: endpoint,
           method: method,
-          details: validationErrors,
+          details: details,
         );
       case 500:
       case 502:
-      case 503:
-        return ServerFailure(
+        return InternalServerErrorFailure(
           message: message ?? 'Server error',
-          code: 'SERVER_ERROR',
-          statusCode: statusCode,
+          code: errorCode ?? 'INTERNAL_SERVER_ERROR',
+          statusCode: resolvedStatus,
           endpoint: endpoint,
-          details: validationErrors,
+          method: method,
+          responseData: data,
+          details: details,
+        );
+      case 503:
+        return ServiceUnavailableFailure(
+          message: message ?? 'Service unavailable',
+          code: errorCode ?? 'SERVICE_UNAVAILABLE',
+          endpoint: endpoint,
+          method: method,
+          responseData: data,
+          details: details,
+          retryAfterSeconds: _extractRetryAfter(data) ?? 60,
         );
       default:
-        return ServerFailure(
+        return HttpStatusFailure(
           message: message ?? 'An error occurred',
-          statusCode: statusCode,
+          statusCode: resolvedStatus ?? 0,
+          code: errorCode ?? 'HTTP_STATUS_ERROR',
           endpoint: endpoint,
-          details: validationErrors,
+          method: method,
+          responseData: data,
+          details: details,
         );
     }
   }
 
+  /// Human-readable message.
+  ///
+  /// RFC 7807: prefers `detail`, then `title`.
+  /// Legacy: `message`, `error_message`, `msg`, then `error` as last resort.
   String? _extractErrorMessage(dynamic data) {
     if (data is Map) {
       final raw =
-          data['message'] ??
-          data['error'] ??
-          data['error_message'] ??
           data['detail'] ??
-          data['msg'];
-      return raw?.toString();
+          data['title'] ??
+          data['message'] ??
+          data['error_message'] ??
+          data['msg'] ??
+          data['error'];
+      final text = raw?.toString();
+      if (text != null && text.isNotEmpty) return text;
+    }
+    if (data is String && data.isNotEmpty) return data;
+    return null;
+  }
+
+  /// Machine-readable problem code.
+  ///
+  /// RFC 7807 extension: `code` (e.g. `missing_tenant_id`).
+  /// Also accepts legacy `error` / `error_code`, or the last path segment of
+  /// `type` (`…/problems/missing-tenant-id` → `missing_tenant_id`).
+  String? _extractErrorCode(dynamic data) {
+    if (data is! Map) return null;
+
+    final code = data['code'] ?? data['error_code'];
+    if (code is String && code.isNotEmpty) return code;
+
+    final error = data['error'];
+    if (error is String && error.isNotEmpty && !error.contains(' ')) {
+      return error;
+    }
+
+    final type = data['type'];
+    if (type is String && type.isNotEmpty) {
+      final segment = Uri.tryParse(type)?.pathSegments.lastOrNull;
+      if (segment != null && segment.isNotEmpty) {
+        return segment.replaceAll('-', '_');
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _responseDetails(
+    dynamic data,
+    Map<String, List<String>>? validationErrors,
+  ) {
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    if (validationErrors != null) {
+      return {'errors': validationErrors};
+    }
+    if (data != null) {
+      return {'raw': data};
     }
     return null;
   }

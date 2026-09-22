@@ -4,15 +4,13 @@ import 'package:dio/dio.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
 import 'package:enterprise_network/src/client/cache/network_cache_store.dart';
 import 'package:enterprise_network/src/constants/network_constants.dart';
-/*Call	Meaning
-handler.next(options)
-Continue to the next interceptor / real HTTP call
-handler.resolve(response)
-Stop here; treat this as a successful response (no network)
-handler.reject(error)
-Fail the request now
-*/
+
 /// Interceptor to cache network responses.
+///
+/// - [onRequest]: serves cache for GET unless `skip_cache` or `force_refresh`
+/// - [onResponse]: writes successful GET bodies
+/// - [onError]: offline fallback from cache unless `skip_cache` or
+///   `force_refresh` (force refresh must not hide network failures)
 class CacheInterceptor extends Interceptor {
   /// Constructor for the CacheInterceptor.
   CacheInterceptor(
@@ -52,8 +50,7 @@ class CacheInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!_shouldUseCache(options) ||
-        options.extra[forceRefreshExtraKey] == true) {
+    if (!_shouldUseCache(options) || _isForceRefresh(options)) {
       return handler.next(options);
     }
 
@@ -104,8 +101,8 @@ class CacheInterceptor extends Interceptor {
           stackTrace: stackTrace,
         );
       }
-      handler.next(response);
     }
+    handler.next(response);
   }
 
   @override
@@ -114,7 +111,9 @@ class CacheInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final options = err.requestOptions;
-    if (!_shouldUseCache(options)) {
+    // force_refresh means the caller needs a live response — do not mask
+    // connection errors with a stale cache hit.
+    if (!_shouldUseCache(options) || _isForceRefresh(options)) {
       return handler.next(err);
     }
 
@@ -122,8 +121,12 @@ class CacheInterceptor extends Interceptor {
     try {
       final cached = await _cacheStore.read(key);
       if (cached == null) return handler.next(err);
-      
+
       final data = jsonDecode(cached);
+      _logger.w(
+        'Serving cached fallback for $key after '
+        '${err.type.name}',
+      );
       return handler.resolve(
         Response<dynamic>(
           requestOptions: options,
@@ -141,6 +144,9 @@ class CacheInterceptor extends Interceptor {
       return handler.next(err);
     }
   }
+
+  bool _isForceRefresh(RequestOptions options) =>
+      options.extra[forceRefreshExtraKey] == true;
 
   bool _shouldUseCache(RequestOptions options) {
     if (options.method.toUpperCase() != NetworkConstants.getMethod) {

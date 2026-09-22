@@ -78,18 +78,42 @@ class ApiException extends AppException {
 
   static String? _extractErrorMessage(dynamic data) {
     if (data is Map) {
+      // RFC 7807: detail / title. Legacy: message, then error as last resort.
       final raw =
-          data['message'] ??
-          data['error'] ??
-          data['error_message'] ??
           data['detail'] ??
+          data['title'] ??
+          data['message'] ??
+          data['error_message'] ??
           data['msg'] ??
-          data['error_description'];
+          data['error_description'] ??
+          data['error'];
 
       return raw?.toString();
     }
     if (data is String) {
       return data;
+    }
+    return null;
+  }
+
+  /// Machine code from RFC 7807 `code`, legacy `error`, or `type` URI slug.
+  static String? extractErrorCode(dynamic data) {
+    if (data is! Map) return null;
+
+    final code = data['code'] ?? data['error_code'];
+    if (code is String && code.isNotEmpty) return code;
+
+    final error = data['error'];
+    if (error is String && error.isNotEmpty && !error.contains(' ')) {
+      return error;
+    }
+
+    final type = data['type'];
+    if (type is String && type.isNotEmpty) {
+      final segment = Uri.tryParse(type)?.pathSegments.lastOrNull;
+      if (segment != null && segment.isNotEmpty) {
+        return segment.replaceAll('-', '_');
+      }
     }
     return null;
   }
@@ -127,16 +151,31 @@ class ApiException extends AppException {
         return errors;
       }
 
-      // Handle simple field errors
+      // Handle simple field errors (skip RFC 7807 / common envelope keys)
+      const reserved = {
+        'type',
+        'title',
+        'status',
+        'detail',
+        'instance',
+        'code',
+        'message',
+        'error',
+        'error_code',
+        'error_message',
+        'error_description',
+        'msg',
+        'errors',
+      };
       final simpleErrors = <String, List<String>>{};
       for (final entry in data.entries) {
-        final key = entry.key;
+        final key = entry.key.toString();
+        if (reserved.contains(key)) continue;
         final value = entry.value;
-        if (value is String && key != 'message' && key != 'error') {
-          simpleErrors[key.toString()] = [value];
+        if (value is String) {
+          simpleErrors[key] = [value];
         } else if (value is List && value.isNotEmpty && value.first is String) {
-          simpleErrors[key.toString()] =
-              value.map((e) => e.toString()).toList();
+          simpleErrors[key] = value.map((e) => e.toString()).toList();
         }
       }
       return simpleErrors.isNotEmpty ? simpleErrors : null;

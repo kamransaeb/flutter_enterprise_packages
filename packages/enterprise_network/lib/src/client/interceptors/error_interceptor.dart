@@ -31,7 +31,7 @@ class ErrorInterceptor extends Interceptor {
     final method = err.requestOptions.method;
     final response = err.response;
 
-    final NetworkException appError;
+    final AppException appError;
 
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
@@ -72,15 +72,7 @@ class ErrorInterceptor extends Interceptor {
         );
 
       case DioExceptionType.badResponse:
-        appError = HttpStatusException(
-          message:
-              _messageFromResponse(response) ??
-              'HTTP ${response?.statusCode ?? 'error occured.'}',
-          statusCode: response?.statusCode ?? 0,
-          endpoint: path,
-          method: method,
-          responseData: response?.data,
-        );
+        appError = _exceptionForBadResponse(response, path, method);
 
       case DioExceptionType.transformTimeout:
         appError = ConnectionTimeoutException(
@@ -107,11 +99,84 @@ class ErrorInterceptor extends Interceptor {
     );
   }
 
-  /// Best-effort extract of API error message from common JSON shapes.
+  /// Maps HTTP status to a typed API exception (keeps `responseData`).
+  AppException _exceptionForBadResponse(
+    Response<dynamic>? response,
+    String path,
+    String method,
+  ) {
+    final data = response?.data;
+    final statusCode = response?.statusCode;
+
+    return switch (statusCode) {
+      400 => BadRequestException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      401 => UnauthorizedRequestException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      403 => ForbiddenException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      404 => ResourceNotFoundException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      409 => ConflictException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      422 => UnprocessableEntityException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      429 => TooManyRequestsException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      503 => ServiceUnavailableException.fromResponse(
+        responseData: data,
+        endpoint: path,
+        method: method,
+      ),
+      final code when code != null && code >= 500 =>
+        InternalServerErrorException.fromResponse(
+          responseData: data,
+          endpoint: path,
+          method: method,
+        ),
+      _ => HttpStatusException(
+        message:
+            _messageFromResponse(response) ??
+            'HTTP ${statusCode ?? 'error occured.'}',
+        statusCode: statusCode ?? 0,
+        endpoint: path,
+        method: method,
+        responseData: data,
+      ),
+    };
+  }
+
+  /// Best-effort extract of API error message (RFC 7807 + legacy).
   String? _messageFromResponse(Response<dynamic>? response) {
     final data = response?.data;
     if (data is Map) {
-      final message = data['message'] ?? data['error'] ?? data['detail'];
+      final message =
+          data['detail'] ??
+          data['title'] ??
+          data['message'] ??
+          data['error'] ??
+          data['msg'];
       if (message is String && message.isNotEmpty) return message;
     }
     if (data is String && data.isNotEmpty) return data;
