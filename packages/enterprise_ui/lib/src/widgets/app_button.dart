@@ -42,6 +42,7 @@ class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
     this.label = '',
+    this.labelStyle,
     this.onPressed,
     this.variant = AppButtonVariant.filled,
     this.size = AppButtonSize.medium,
@@ -59,6 +60,9 @@ class AppButton extends StatelessWidget {
   /// Button text (app / l10n). Unused for [AppButtonVariant.icon] /
   /// [AppButtonVariant.roundIcon].
   final String label;
+
+  /// Button text style.
+  final TextStyle? labelStyle;
 
   /// Tap handler
   final VoidCallback? onPressed;
@@ -107,22 +111,22 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.filled || AppButtonVariant.danger => FilledButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.tonal => FilledButton.tonal(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.outlined => OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.text => TextButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.icon => IconButton(
         onPressed: enabled ? onPressed : null,
@@ -173,8 +177,11 @@ class AppButton extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _labelChild() {
-    final labelWidget = Text(label);
+  TextStyle? _resolvedLabelStyle(ThemeData theme) =>
+      labelStyle ?? theme.textTheme.titleMedium;
+
+  Widget _labelChild(ThemeData theme) {
+    final labelWidget = Text(label, style: _resolvedLabelStyle(theme));
     if (icon == null && iconWidget == null) return labelWidget;
 
     return Row(
@@ -204,6 +211,7 @@ class AppButton extends StatelessWidget {
     };
 
     var style = ButtonStyle(
+      textStyle: WidgetStatePropertyAll(_resolvedLabelStyle(theme)),
       padding: WidgetStateProperty.all(padding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(

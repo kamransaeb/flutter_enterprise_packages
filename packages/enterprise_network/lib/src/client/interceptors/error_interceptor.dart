@@ -59,10 +59,7 @@ class ErrorInterceptor extends Interceptor {
         );
 
       case DioExceptionType.cancel:
-        appError = RequestCancelledException(
-          endpoint: path,
-          method: method,
-        );
+        appError = RequestCancelledException(endpoint: path, method: method);
 
       case DioExceptionType.badCertificate:
         appError = SslException(

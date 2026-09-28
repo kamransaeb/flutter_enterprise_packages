@@ -46,11 +46,7 @@ class ErrorHandler {
     final normalized = _normalizeError(error);
     _logError(normalized, stackTrace);
     if (report) {
-      _report(
-        normalized,
-        stackTrace: stackTrace,
-        reason: reason,
-      );
+      _report(normalized, stackTrace: stackTrace, reason: reason);
     }
 
     if (normalized is AppException) {
@@ -73,9 +69,7 @@ class ErrorHandler {
         retryable: false,
       );
     }
-    return UnknownFailure(
-      details: {'error': normalized.toString()},
-    );
+    return UnknownFailure(details: {'error': normalized.toString()});
   }
 
   /// Prefers a nested [AppException] on [DioException.error] (e.g. from
@@ -150,11 +144,7 @@ class ErrorHandler {
 
   void _logError(Object error, StackTrace? stackTrace) {
     if (!enableLogging) return;
-    _loggerService.e(
-      'Error: $error',
-      error: error,
-      stackTrace: stackTrace,
-    );
+    _loggerService.e('Error: $error', error: error, stackTrace: stackTrace);
   }
 
   Failure _handleAppException(AppException exception) {
@@ -606,7 +596,7 @@ class ErrorHandler {
           message: exception.message,
         );
       case final InvalidCredentialsException _:
-        return InvalidCredentialsFailure(      
+        return InvalidCredentialsFailure(
           message: exception.message,
           details: exception.details,
         );
@@ -640,7 +630,7 @@ class ErrorHandler {
           fileName: ex.fileName,
           details: exception.details,
         );
-      case final FileTooLargeException ex:        
+      case final FileTooLargeException ex:
         return FileTooLargeFailure(
           fileSize: ex.fileSize,
           maxSize: ex.maxSize,
@@ -788,7 +778,8 @@ class ErrorHandler {
     String method,
   ) {
     // RFC 7807 may include `status` in the body; prefer the HTTP status.
-    final resolvedStatus = statusCode ??
+    final resolvedStatus =
+        statusCode ??
         (data is Map && data['status'] is int ? data['status'] as int : null);
     final message = _extractErrorMessage(data);
     final errorCode = _extractErrorCode(data);
@@ -966,8 +957,9 @@ class ErrorHandler {
         for (final entry in (data['errors'] as Map).entries) {
           final value = entry.value;
           if (value is List) {
-            errors[entry.key.toString()] =
-                value.map((e) => e.toString()).toList();
+            errors[entry.key.toString()] = value
+                .map((e) => e.toString())
+                .toList();
           } else if (value is String) {
             errors[entry.key.toString()] = [value];
           }
