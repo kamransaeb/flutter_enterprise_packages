@@ -111,22 +111,22 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.filled || AppButtonVariant.danger => FilledButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.tonal => FilledButton.tonal(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.outlined => OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.text => TextButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.icon => IconButton(
         onPressed: enabled ? onPressed : null,
@@ -177,11 +177,10 @@ class AppButton extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  TextStyle? _resolvedLabelStyle(ThemeData theme) =>
-      labelStyle ?? theme.textTheme.titleMedium;
-
-  Widget _labelChild(ThemeData theme) {
-    final labelWidget = Text(label, style: _resolvedLabelStyle(theme));
+  Widget _labelChild() {
+    final labelWidget = Text(
+      label,
+    );
     if (icon == null && iconWidget == null) return labelWidget;
 
     return Row(
@@ -211,7 +210,6 @@ class AppButton extends StatelessWidget {
     };
 
     var style = ButtonStyle(
-      textStyle: WidgetStatePropertyAll(_resolvedLabelStyle(theme)),
       padding: WidgetStateProperty.all(padding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(

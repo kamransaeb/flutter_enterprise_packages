@@ -100,6 +100,7 @@ class AuthInterceptor extends QueuedInterceptor {
   ) async {
     final skipAuth = options.extra[skipAuthExtraKey] as bool? ?? false;
     if (skipAuth) {
+      options.headers.remove(authorizationHeaderKey);
       return handler.next(options);
     }
 
