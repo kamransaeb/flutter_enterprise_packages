@@ -118,22 +118,22 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.filled || AppButtonVariant.danger => FilledButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.tonal => FilledButton.tonal(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.outlined => OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.text => TextButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(),
+        child: _labelChild(theme),
       ),
       AppButtonVariant.icon => IconButton(
         onPressed: enabled ? onPressed : null,
@@ -190,10 +190,11 @@ class AppButton extends StatelessWidget {
     return BorderSide(color: borderColor!, width: borderWidth);
   }
 
-  Widget _labelChild() {
-    final labelWidget = Text(
-      label,
-    );
+  TextStyle? _resolvedLabelStyle(ThemeData theme) =>
+      labelStyle ?? theme.textTheme.labelLarge;
+
+  Widget _labelChild(ThemeData theme) {
+    final labelWidget = Text(label, style: _resolvedLabelStyle(theme));
     if (icon == null && iconWidget == null) return labelWidget;
 
     return Row(
@@ -223,6 +224,7 @@ class AppButton extends StatelessWidget {
     };
 
     var style = ButtonStyle(
+      textStyle: WidgetStatePropertyAll(_resolvedLabelStyle(theme)),
       padding: WidgetStateProperty.all(padding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
