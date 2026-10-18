@@ -84,13 +84,20 @@ class AppButton extends StatelessWidget {
   /// Takes precedence over [icon].
   final Widget? iconWidget;
 
-  /// Whether [AppButtonVariant.roundIcon] draws a border.
+  /// Whether a border is drawn when [borderColor] is set (and for
+  /// [AppButtonVariant.roundIcon]).
   final bool border;
 
-  /// Border color for [AppButtonVariant.roundIcon].
+  /// Border color override for all variants.
+  ///
+  /// For Material variants this sets [ButtonStyle.side].
+  /// For [AppButtonVariant.roundIcon] it paints the circle stroke.
   final Color? borderColor;
 
-  /// Background color for [AppButtonVariant.roundIcon].
+  /// Background / fill color override for all variants.
+  ///
+  /// For Material variants this sets [ButtonStyle.backgroundColor].
+  /// For [AppButtonVariant.roundIcon] it paints the circle fill.
   final Color? boxColor;
 
   /// Inner padding for [AppButtonVariant.roundIcon].
@@ -99,7 +106,7 @@ class AppButton extends StatelessWidget {
   /// Corner radius for non-circular button variants.
   final double borderRadius;
 
-  /// Border stroke width for [AppButtonVariant.roundIcon].
+  /// Border stroke width when [borderColor] is applied.
   final double borderWidth;
 
   @override
@@ -135,7 +142,8 @@ class AppButton extends StatelessWidget {
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           overlayColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
+          backgroundColor: boxColor ?? Colors.transparent,
+          side: _resolvedSide(),
           splashFactory: NoSplash.splashFactory,
           surfaceTintColor: Colors.transparent,
         ),
@@ -175,6 +183,11 @@ class AppButton extends StatelessWidget {
     if (iconWidget != null) return iconWidget!;
     if (icon != null) return Icon(icon, size: 18);
     return const SizedBox.shrink();
+  }
+
+  BorderSide? _resolvedSide() {
+    if (!border || borderColor == null) return null;
+    return BorderSide(color: borderColor!, width: borderWidth);
   }
 
   Widget _labelChild() {
@@ -220,9 +233,20 @@ class AppButton extends StatelessWidget {
 
     if (variant == AppButtonVariant.danger) {
       style = style.copyWith(
-        backgroundColor: WidgetStatePropertyAll(theme.colorScheme.error),
+        backgroundColor: WidgetStatePropertyAll(
+          boxColor ?? theme.colorScheme.error,
+        ),
         foregroundColor: WidgetStatePropertyAll(theme.colorScheme.onError),
       );
+    } else if (boxColor != null) {
+      style = style.copyWith(
+        backgroundColor: WidgetStatePropertyAll(boxColor),
+      );
+    }
+
+    final side = _resolvedSide();
+    if (side != null) {
+      style = style.copyWith(side: WidgetStatePropertyAll(side));
     }
     return style;
   }
