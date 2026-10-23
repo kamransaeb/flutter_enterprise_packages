@@ -31,6 +31,10 @@ class AppTheme {
       seedColor: seed,
       brightness: brightness,
     );
+    final textTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+    ).textTheme;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
     );
@@ -41,6 +45,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
+      textTheme: textTheme,
       scaffoldBackgroundColor: colorScheme.surface,
       visualDensity: VisualDensity.standard,
       appBarTheme: AppBarTheme(
@@ -97,20 +102,33 @@ class AppTheme {
           ),
         ),
       ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: shape,
+          textStyle: textTheme.titleMedium,
+          disabledForegroundColor: colorScheme.onSurfaceVariant,
+          overlayColor: colorScheme.onSurface,
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(shape: shape),
+        style: FilledButton.styleFrom(
+          shape: shape,
+          textStyle: textTheme.titleMedium,
+          disabledBackgroundColor: colorScheme.surfaceContainerHigh,
+          disabledForegroundColor: colorScheme.surfaceContainerLowest,
+        ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           shape: shape,
+          textStyle: textTheme.titleMedium,
+          foregroundColor: colorScheme.primary,
+          disabledForegroundColor: colorScheme.surfaceContainerLowest,
           side: BorderSide(
             color: colorScheme.outline,
             width: borderWidth,
           ),
         ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(shape: shape),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
