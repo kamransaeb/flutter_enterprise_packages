@@ -102,34 +102,6 @@ class AppTheme {
           ),
         ),
       ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          shape: shape,
-          textStyle: textTheme.titleMedium,
-          disabledForegroundColor: colorScheme.onSurfaceVariant,
-          overlayColor: colorScheme.onSurface,
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          shape: shape,
-          textStyle: textTheme.titleMedium,
-          disabledBackgroundColor: colorScheme.surfaceContainerHigh,
-          disabledForegroundColor: colorScheme.surfaceContainerLowest,
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          shape: shape,
-          textStyle: textTheme.titleMedium,
-          foregroundColor: colorScheme.primary,
-          disabledForegroundColor: colorScheme.surfaceContainerLowest,
-          side: BorderSide(
-            color: colorScheme.outline,
-            width: borderWidth,
-          ),
-        ),
-      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,

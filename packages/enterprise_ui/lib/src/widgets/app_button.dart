@@ -118,22 +118,22 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.filled || AppButtonVariant.danger => FilledButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.tonal => FilledButton.tonal(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.outlined => OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.text => TextButton(
         onPressed: enabled ? onPressed : null,
         style: _style(theme),
-        child: _labelChild(theme),
+        child: _labelChild(),
       ),
       AppButtonVariant.icon => IconButton(
         onPressed: enabled ? onPressed : null,
@@ -190,11 +190,11 @@ class AppButton extends StatelessWidget {
     return BorderSide(color: borderColor!, width: borderWidth);
   }
 
-  TextStyle? _resolvedLabelStyle(ThemeData theme) =>
-      labelStyle ?? theme.textTheme.labelLarge;
-
-  Widget _labelChild(ThemeData theme) {
-    final labelWidget = Text(label, style: _resolvedLabelStyle(theme));
+  Widget _labelChild() {
+    // No default style: inherit Material's textStyle + foregroundColor so
+    // ThemeData.*ButtonTheme (e.g. filledButtonTheme) can control typography
+    // and enabled/disabled colors. Callers that pass [labelStyle] opt out.
+    final labelWidget = Text(label, style: labelStyle);
     if (icon == null && iconWidget == null) return labelWidget;
 
     return Row(
@@ -224,7 +224,11 @@ class AppButton extends StatelessWidget {
     };
 
     var style = ButtonStyle(
-      textStyle: WidgetStatePropertyAll(_resolvedLabelStyle(theme)),
+      // Only override textStyle when the caller passed [labelStyle]; otherwise
+      // leave null so filled/outlined/text ButtonTheme wins.
+      textStyle: labelStyle != null
+          ? WidgetStatePropertyAll(labelStyle)
+          : null,
       padding: WidgetStateProperty.all(padding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
@@ -235,14 +239,22 @@ class AppButton extends StatelessWidget {
 
     if (variant == AppButtonVariant.danger) {
       style = style.copyWith(
-        backgroundColor: WidgetStatePropertyAll(
-          boxColor ?? theme.colorScheme.error,
-        ),
-        foregroundColor: WidgetStatePropertyAll(theme.colorScheme.onError),
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          // null when disabled → theme / M3 disabled background
+          if (states.contains(WidgetState.disabled)) return null;
+          return boxColor ?? theme.colorScheme.error;
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return null;
+          return theme.colorScheme.onError;
+        }),
       );
     } else if (boxColor != null) {
       style = style.copyWith(
-        backgroundColor: WidgetStatePropertyAll(boxColor),
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return null;
+          return boxColor;
+        }),
       );
     }
 
