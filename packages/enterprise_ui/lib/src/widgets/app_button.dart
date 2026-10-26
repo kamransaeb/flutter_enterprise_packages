@@ -52,7 +52,8 @@ class AppButton extends StatelessWidget {
     this.border = true,
     this.borderColor,
     this.boxColor,
-    this.paddingSize = 8,
+    this.padding,
+    this.roundIconInnerPaddingSize = 8,
     this.borderWidth = 1.2,
     this.borderRadius = 12,
   });
@@ -71,6 +72,8 @@ class AppButton extends StatelessWidget {
   final AppButtonVariant variant;
 
   /// Padding / type scale.
+  ///
+  /// Used for default padding when [padding] is null.
   final AppButtonSize size;
 
   /// Stretch to parent width.
@@ -100,8 +103,13 @@ class AppButton extends StatelessWidget {
   /// For [AppButtonVariant.roundIcon] it paints the circle fill.
   final Color? boxColor;
 
+  /// Optional padding override for Material button variants.
+  ///
+  /// When null, padding comes from [size].
+  final EdgeInsetsGeometry? padding;
+
   /// Inner padding for [AppButtonVariant.roundIcon].
-  final double paddingSize;
+  final double roundIconInnerPaddingSize;
 
   /// Corner radius for non-circular button variants.
   final double borderRadius;
@@ -154,7 +162,7 @@ class AppButton extends StatelessWidget {
         child: GestureDetector(
           onTap: enabled ? onPressed : null,
           child: Container(
-            padding: EdgeInsets.all(paddingSize),
+            padding: EdgeInsets.all(roundIconInnerPaddingSize),
             decoration: BoxDecoration(
               border: Border.all(
                 color: border
@@ -208,20 +216,22 @@ class AppButton extends StatelessWidget {
   }
 
   ButtonStyle _style(ThemeData theme) {
-    final padding = switch (size) {
-      AppButtonSize.small => const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 8,
-      ),
-      AppButtonSize.medium => const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 12,
-      ),
-      AppButtonSize.large => const EdgeInsets.symmetric(
-        horizontal: 28,
-        vertical: 16,
-      ),
-    };
+    final resolvedPadding =
+        padding ??
+        switch (size) {
+          AppButtonSize.small => const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          AppButtonSize.medium => const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+          AppButtonSize.large => const EdgeInsets.symmetric(
+            horizontal: 28,
+            vertical: 16,
+          ),
+        };
 
     var style = ButtonStyle(
       // Only override textStyle when the caller passed [labelStyle]; otherwise
@@ -229,7 +239,7 @@ class AppButton extends StatelessWidget {
       textStyle: labelStyle != null
           ? WidgetStatePropertyAll(labelStyle)
           : null,
-      padding: WidgetStateProperty.all(padding),
+      padding: WidgetStateProperty.all(resolvedPadding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
