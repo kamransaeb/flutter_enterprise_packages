@@ -209,7 +209,10 @@ class AppButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         iconWidget ?? Icon(icon, size: 18),
-        const SizedBox(width: 8),
+        if (padding == null)
+          const SizedBox(width: 8)
+        else
+          SizedBox(width: padding!.horizontal),
         labelWidget,
       ],
     );
@@ -236,9 +239,7 @@ class AppButton extends StatelessWidget {
     var style = ButtonStyle(
       // Only override textStyle when the caller passed [labelStyle]; otherwise
       // leave null so filled/outlined/text ButtonTheme wins.
-      textStyle: labelStyle != null
-          ? WidgetStatePropertyAll(labelStyle)
-          : null,
+      textStyle: labelStyle != null ? WidgetStatePropertyAll(labelStyle) : null,
       padding: WidgetStateProperty.all(resolvedPadding),
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
