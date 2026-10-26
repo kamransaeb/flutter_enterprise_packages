@@ -106,6 +106,8 @@ class AppButton extends StatelessWidget {
   /// Optional padding override for Material button variants.
   ///
   /// When null, padding comes from [size].
+  /// When [EdgeInsets.zero], also shrinks [ButtonStyle.minimumSize] and
+  /// [ButtonStyle.tapTargetSize] so the label sits flush next to adjacent text.
   final EdgeInsetsGeometry? padding;
 
   /// Inner padding for [AppButtonVariant.roundIcon].
@@ -236,11 +238,20 @@ class AppButton extends StatelessWidget {
           ),
         };
 
+    final isCompact = padding == EdgeInsets.zero;
+
     var style = ButtonStyle(
       // Only override textStyle when the caller passed [labelStyle]; otherwise
       // leave null so filled/outlined/text ButtonTheme wins.
       textStyle: labelStyle != null ? WidgetStatePropertyAll(labelStyle) : null,
       padding: WidgetStateProperty.all(resolvedPadding),
+      // Zero padding alone is not enough — Material still keeps min size / tap
+      // target, which leaves a gap next to adjacent Text.
+      minimumSize: isCompact
+          ? const WidgetStatePropertyAll(Size.zero)
+          : null,
+      tapTargetSize: isCompact ? MaterialTapTargetSize.shrinkWrap : null,
+      visualDensity: isCompact ? VisualDensity.compact : null,
       shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
