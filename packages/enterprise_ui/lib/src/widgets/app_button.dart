@@ -33,7 +33,23 @@ enum AppButtonSize {
   medium,
 
   /// Large button.
-  large,
+  large;
+
+  /// Icon size for [AppButtonSize.small].
+  static const double iconSizeSmall = 15;
+
+  /// Icon size for [AppButtonSize.medium].
+  static const double iconSizeMedium = 20;
+
+  /// Icon size for [AppButtonSize.large].
+  static const double iconSizeLarge = 25;
+
+  /// Leading / icon-only glyph size for this button size.
+  double get iconSize => switch (this) {
+    AppButtonSize.small => iconSizeSmall,
+    AppButtonSize.medium => iconSizeMedium,
+    AppButtonSize.large => iconSizeLarge,
+  };
 }
 
 /// Shared action button. Label copy comes from the app.
@@ -191,7 +207,7 @@ class AppButton extends StatelessWidget {
 
   Widget _resolvedIcon() {
     if (iconWidget != null) return iconWidget!;
-    if (icon != null) return Icon(icon, size: 18);
+    if (icon != null) return Icon(icon, size: size.iconSize);
     return const SizedBox.shrink();
   }
 
@@ -210,7 +226,7 @@ class AppButton extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        iconWidget ?? Icon(icon, size: 18),
+        iconWidget ?? Icon(icon, size: size.iconSize),
         if (padding == null)
           const SizedBox(width: 8)
         else
