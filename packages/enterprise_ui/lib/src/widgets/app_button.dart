@@ -148,7 +148,7 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.icon => IconButton(
         onPressed: enabled ? onPressed : null,
         style: IconButton.styleFrom(
-          padding: EdgeInsets.zero,
+          padding: padding ?? EdgeInsets.zero,
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           overlayColor: Colors.transparent,
@@ -247,9 +247,7 @@ class AppButton extends StatelessWidget {
       padding: WidgetStateProperty.all(resolvedPadding),
       // Zero padding alone is not enough — Material still keeps min size / tap
       // target, which leaves a gap next to adjacent Text.
-      minimumSize: isCompact
-          ? const WidgetStatePropertyAll(Size.zero)
-          : null,
+      minimumSize: isCompact ? const WidgetStatePropertyAll(Size.zero) : null,
       tapTargetSize: isCompact ? MaterialTapTargetSize.shrinkWrap : null,
       visualDensity: isCompact ? VisualDensity.compact : null,
       shape: WidgetStatePropertyAll(
