@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
 import 'package:enterprise_logger/enterprise_logger.dart';
 import 'package:enterprise_network/src/constants/network_constants.dart';
@@ -7,7 +5,10 @@ import 'package:enterprise_network/src/constants/network_constants.dart';
 /// A function that reads the token from the storage.
 typedef TokenReader = Future<String?> Function();
 
-/// A function that refreshes the token.
+/// Refreshes the token.
+///
+/// Return `null` when the session is gone (user is logged out); throw when
+/// the failure is transient (e.g. offline) so the session is kept.
 typedef TokenRefresher = Future<String?> Function();
 
 /// A function that handles the expired token.
@@ -80,6 +81,16 @@ class AuthInterceptor extends QueuedInterceptor {
   /// Set by the client app.
   Dio? dio;
 
+  Dio? _retryDio;
+
+  /// Interceptor-free copy of [client] for the post-refresh retry.
+  ///
+  /// The retry must not re-enter this [QueuedInterceptor]: its error would
+  /// queue behind the `onError` that is awaiting it and never complete.
+  Dio _retryClient(Dio client) => _retryDio ??= Dio(client.options)
+    ..httpClientAdapter = client.httpClientAdapter
+    ..transformer = client.transformer;
+
   // A Completer<T> is a Dart object that lets you create and complete a
   // Future<T> manually.
   // Normally a Future finishes when an async function returns or an API
@@ -88,10 +99,6 @@ class AuthInterceptor extends QueuedInterceptor {
   // 2. Hand out: c.future to waiters.
   // 3. Complete: c.complete(value);
   // 4. Complete with error: c.completeError(error);
-
-  /// In-flight refresh shared by concurrent 401 handlers.
-  ///
-  // Completer<String?>? _refreshCompleter;
 
   @override
   Future<void> onRequest(
@@ -153,7 +160,9 @@ class AuthInterceptor extends QueuedInterceptor {
       final requestOptions = err.requestOptions;
       requestOptions.headers[authorizationHeaderKey] =
           '$authorizationHeaderValuePrefix$newToken';
-      final response = await client.fetch<dynamic>(requestOptions);
+      final response = await _retryClient(
+        client,
+      ).fetch<dynamic>(requestOptions);
       return handler.resolve(response);
     } on DioException catch (e) {
       if (e.response?.statusCode == NetworkConstants.unauthorizedStatusCode) {
@@ -161,9 +170,16 @@ class AuthInterceptor extends QueuedInterceptor {
       }
       return handler.next(e);
     } on Object catch (e, stackTrace) {
-      _logger.e('Token refresh failed', error: e, stackTrace: stackTrace);
-      await _onTokenExpired();
-      return handler.next(err);
+      // Refresher threw → transient (e.g. offline): keep the session and
+      // surface a connection error instead of the 401 ("sign in again").
+      _logger.w('Token refresh failed', error: e, stackTrace: stackTrace);
+      return handler.next(
+        DioException(
+          requestOptions: err.requestOptions,
+          type: DioExceptionType.connectionError,
+          error: e,
+        ),
+      );
     }
   }
 }
