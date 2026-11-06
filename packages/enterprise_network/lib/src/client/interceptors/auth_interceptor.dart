@@ -156,7 +156,9 @@ class AuthInterceptor extends QueuedInterceptor {
       final response = await client.fetch<dynamic>(requestOptions);
       return handler.resolve(response);
     } on DioException catch (e) {
-      await _onTokenExpired();
+      if (e.response?.statusCode == NetworkConstants.unauthorizedStatusCode) {
+        await _onTokenExpired();
+      }
       return handler.next(e);
     } on Object catch (e, stackTrace) {
       _logger.e('Token refresh failed', error: e, stackTrace: stackTrace);
@@ -164,27 +166,4 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
   }
-
-  /// Single-flight refresh: waiters share the same [Completer] future.
-  // Future<String?> _refreshAccessToken() async {
-  //   final inFlight = _refreshCompleter;
-  //   if (inFlight != null) {
-  //     return inFlight.future;
-  //   }
-
-  //   final completer = Completer<String?>();
-  //   _refreshCompleter = completer;
-
-  //   try {
-  //     final token = await _refreshTokens();
-  //     completer.complete(token);
-  //     return token;
-  //   } on Object catch (e, stackTrace) {
-  //     completer.completeError(e, stackTrace);
-  //     rethrow;
-  //   } finally {
-  //     // Clear the completer to allow new refresh attempts.
-  //     _refreshCompleter = null;
-  //   }
-  // }
 }
