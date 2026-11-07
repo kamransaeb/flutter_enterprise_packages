@@ -682,6 +682,18 @@ class ErrorHandler {
           paymentMethod: ex.paymentMethod,
           details: exception.details,
         );
+
+      // ============================================================
+      // Third-party service exceptions
+      // ============================================================
+      case final FirebaseException ex:
+        return FirebaseFailure(
+          message: exception.message,
+          serviceName: ex.serviceName,
+          serviceError: ex.serviceError,
+          firebaseErrorCode: ex.firebaseErrorCode,
+          details: exception.details,
+        );
       default:
         return ServerFailure(
           message: exception.message,
